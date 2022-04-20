@@ -1,0 +1,26 @@
+[package]
+name = "bende"
+version = "0.1.0"
+
+authors = ["Rick <rickz75dev@gmail.com>", "Halfnelson <ewoudvanrooyen@gmail.com>"]
+description = "A bencode encoding/decoding implementation backed by serde."
+
+categories = ["encoding", "decoding", "network-programming"]
+keywords = ["bencode", "encode", "decode", "serialize", "deserialize", "torrent", "bittorrent"]
+
+homepage = "https://github.com/Rickz75/bende"
+repository = "https://github.com/Rickz75/bende"
+
+license = "MIT"
+publish = true
+
+edition = "2021"
+
+[dependencies]
+
+[dependencies.serde]
+version = "1"
+features = ["derive"]
+
+[dev-dependencies]
+serde_bytes = "0.11"
