@@ -41,7 +41,11 @@ impl std::fmt::Display for Error {
         match *self {
             Error::Io(ref e) => e.fmt(f),
             Error::Unsupported(ref ty) => {
-                write!(f, "the type '{}' is not supported by the library", ty)
+                write!(
+                    f,
+                    "encoding of type '{}' is not supported by the library",
+                    ty
+                )
             }
             Error::Serialize(ref e) => e.fmt(f),
         }

@@ -63,7 +63,11 @@ impl std::fmt::Display for Error {
                 expected, at, found
             ),
             Error::Unsupported(ref ty) => {
-                write!(f, "the type '{}' is not supported by the library", ty)
+                write!(
+                    f,
+                    "decoding of type '{}' is not supported by the library",
+                    ty
+                )
             }
             Error::Deserialize(ref e) => e.fmt(f),
             Error::Utf8(ref e) => e.fmt(f),
