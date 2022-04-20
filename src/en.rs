@@ -573,4 +573,19 @@ mod test {
             b"d4:name11:Jerry Smith3:agei50e11:is_employedi0e9:signature6:jsmithe".to_vec()
         );
     }
+
+    #[test]
+    fn serialize_some() {
+        #[derive(Debug, PartialEq, Serialize)]
+        struct Person {
+            name: Option<String>,
+            age: u8,
+        };
+
+        let jerry = Person { name: Some("Jerry".to_owned()), age: 50 };
+
+        let mut en = Encoder::new(vec![]);
+        assert!(jerry.serialize(&mut en).is_ok());
+        assert_eq!(en.buf, b"d4:name5:Jerry3:agei50ee".to_vec());
+    }
 }
