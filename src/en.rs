@@ -215,11 +215,11 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
         Err(Error::Unsupported("Option<_>"))
     }
 
-    fn serialize_some<T: ?Sized>(self, _: &T) -> Result<Self::Ok, Self::Error>
+    fn serialize_some<T: ?Sized>(self, v: &T) -> Result<Self::Ok, Self::Error>
     where
         T: serde::Serialize,
     {
-        Err(Error::Unsupported("Option<_>"))
+        v.serialize(self)
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
