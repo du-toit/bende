@@ -22,7 +22,7 @@ Add the library as a dependency to [Cargo.toml](https://doc.rust-lang.org/cargo/
 
 ```toml
 [dependencies]
-bende = "0.1.0"
+bende = "0.2.0"
 ```
 
 ### Example
