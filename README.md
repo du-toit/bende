@@ -55,9 +55,8 @@ The types that are currently **not supported** are:
 * `f64`
 * `char`
 * `enum`
-* `Option<_>`
 
-Floats will never be supported, but `char`, `enum`, and `Option<_>` support will probably be added in the future.
+Floats will never be supported, but `char` and `enum` support will probably be added in the future.
 
 ## Contributing
 
@@ -74,5 +73,6 @@ Don't forget to give the project a star! Thanks again!
 
 ## Notes
 
+* Both variants of `Option<_>` (Some and None) are supported by the decoder, **but** the encoder only supports `Some`.
 * If you run into trouble encoding/decoding raw bytes, eg: `&[u8]` or `Vec<u8>` then use [this crate](https://crates.io/crates/serde_bytes).
 * The codebase is small (~1000 lines), easily digestible and filled with comments. If you're a first timer, you'll have a jolly time making your first contribution.
