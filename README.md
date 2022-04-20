@@ -21,8 +21,8 @@ This is one of a few bencode implementations available for rust. Though there ar
 Add the library as a dependency to [Cargo.toml](https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html)
 
 ```toml
-[dependencies.bende]
-git = "https://github.com/Rickz75/bende.git"
+[dependencies]
+bende = "0.1.0"
 ```
 
 ### Example
