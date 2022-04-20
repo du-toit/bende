@@ -519,6 +519,7 @@ mod test {
     use serde::Serialize;
 
     use super::Encoder;
+    use super::Error;
 
     #[test]
     fn encode_int_unsigned() {
@@ -587,5 +588,20 @@ mod test {
         let mut en = Encoder::new(vec![]);
         assert!(jerry.serialize(&mut en).is_ok());
         assert_eq!(en.buf, b"d4:name5:Jerry3:agei50ee".to_vec());
+    }
+
+    #[test]
+    #[should_panic]
+    fn serialize_none_err() {
+        #[derive(Debug, PartialEq, Serialize)]
+        struct Person {
+            name: Option<String>,
+            age: u8,
+        };
+
+        let jerry = Person { name: None, age: 50 };
+
+        let mut en = Encoder::new(vec![]);
+        jerry.serialize(&mut en).unwrap();
     }
 }
