@@ -803,4 +803,29 @@ mod test {
             Ok(Person { name: None, age: 50 })
         )
     }
+
+    #[test]
+    fn deserialize_unit_struct_ok() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct Unit;
+
+        let mut de = Decoder::new(b"4:Unit");
+        assert_eq!(Unit::deserialize(&mut de), Ok(Unit));
+    }
+
+    #[test]
+    fn deserialize_unit_struct_err() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct Unit;
+
+        let mut de = Decoder::new(b"3:Foo");
+        assert_eq!(
+            Unit::deserialize(&mut de),
+            Err(Error::Wanted {
+                at: 0,
+                expected: "Unit",
+                found: "Foo".to_string()
+            })
+        );
+    }
 }
