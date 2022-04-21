@@ -475,7 +475,7 @@ impl<'a, 'de> Deserializer<'de> for &'a mut Decoder<'de> {
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_unit()
+        visitor.visit_newtype_struct(self)
     }
 
     // Sequences and tuple types are deserialized as a sequence.
