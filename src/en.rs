@@ -614,4 +614,14 @@ mod test {
         Unit.serialize(&mut en).unwrap();
         assert_eq!(en.buf, b"4:Unit".to_vec());
     }
+
+    #[test]
+    fn serialize_newtype_struct() {
+        #[derive(Debug, Serialize)]
+        struct Foo(i32);
+
+        let mut en = Encoder::new(vec![]);
+        Foo(1995).serialize(&mut en).unwrap();
+        assert_eq!(en.buf, b"i1995e".to_vec());
+    }
 }
