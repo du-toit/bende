@@ -446,13 +446,25 @@ impl<'a, 'de> Deserializer<'de> for &'a mut Decoder<'de> {
 
     fn deserialize_unit_struct<V>(
         self,
-        _: &'static str,
+        name: &'static str,
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_unit()
+        // Get the decoder's position before we decode the name.
+        let at = self.pos();
+
+        let found = self.decode_bytes()?;
+        if found != name.as_bytes() {
+            Err(Error::Wanted {
+                at,
+                expected: name,
+                found: String::from_utf8(found.to_vec())?,
+            })
+        } else {
+            visitor.visit_unit()
+        }
     }
 
     fn deserialize_newtype_struct<V>(
