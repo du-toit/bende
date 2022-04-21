@@ -446,13 +446,25 @@ impl<'a, 'de> Deserializer<'de> for &'a mut Decoder<'de> {
 
     fn deserialize_unit_struct<V>(
         self,
-        _: &'static str,
+        name: &'static str,
         visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_unit()
+        // Get the decoder's position before we decode the name.
+        let at = self.pos();
+
+        let found = self.decode_bytes()?;
+        if found != name.as_bytes() {
+            Err(Error::Wanted {
+                at,
+                expected: name,
+                found: String::from_utf8(found.to_vec())?,
+            })
+        } else {
+            visitor.visit_unit()
+        }
     }
 
     fn deserialize_newtype_struct<V>(
@@ -463,7 +475,7 @@ impl<'a, 'de> Deserializer<'de> for &'a mut Decoder<'de> {
     where
         V: serde::de::Visitor<'de>,
     {
-        visitor.visit_unit()
+        visitor.visit_newtype_struct(self)
     }
 
     // Sequences and tuple types are deserialized as a sequence.
@@ -790,5 +802,39 @@ mod test {
             Person::deserialize(&mut de),
             Ok(Person { name: None, age: 50 })
         )
+    }
+
+    #[test]
+    fn deserialize_unit_struct_ok() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct Unit;
+
+        let mut de = Decoder::new(b"4:Unit");
+        assert_eq!(Unit::deserialize(&mut de), Ok(Unit));
+    }
+
+    #[test]
+    fn deserialize_unit_struct_err() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct Unit;
+
+        let mut de = Decoder::new(b"3:Foo");
+        assert_eq!(
+            Unit::deserialize(&mut de),
+            Err(Error::Wanted {
+                at: 0,
+                expected: "Unit",
+                found: "Foo".to_string()
+            })
+        );
+    }
+
+    #[test]
+    fn deserialize_newtype_struct() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct Foo(i32);
+
+        let mut de = Decoder::new(b"i1995e");
+        assert_eq!(Foo::deserialize(&mut de), Ok(Foo(1995)));
     }
 }

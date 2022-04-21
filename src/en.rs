@@ -228,9 +228,9 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
 
     fn serialize_unit_struct(
         self,
-        _: &'static str,
+        name: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
-        Ok(())
+        self.serialize_str(name)
     }
 
     fn serialize_unit_variant(
@@ -245,12 +245,12 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
     fn serialize_newtype_struct<T: ?Sized>(
         self,
         _: &'static str,
-        _: &T,
+        v: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
         T: serde::Serialize,
     {
-        Ok(())
+        v.serialize(self)
     }
 
     fn serialize_newtype_variant<T: ?Sized>(
@@ -603,5 +603,25 @@ mod test {
 
         let mut en = Encoder::new(vec![]);
         jerry.serialize(&mut en).unwrap();
+    }
+
+    #[test]
+    fn serialize_unit_struct() {
+        #[derive(Debug, Serialize)]
+        struct Unit;
+
+        let mut en = Encoder::new(vec![]);
+        Unit.serialize(&mut en).unwrap();
+        assert_eq!(en.buf, b"4:Unit".to_vec());
+    }
+
+    #[test]
+    fn serialize_newtype_struct() {
+        #[derive(Debug, Serialize)]
+        struct Foo(i32);
+
+        let mut en = Encoder::new(vec![]);
+        Foo(1995).serialize(&mut en).unwrap();
+        assert_eq!(en.buf, b"i1995e".to_vec());
     }
 }
