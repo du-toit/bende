@@ -63,7 +63,11 @@ impl std::fmt::Display for Error {
                 expected, at, found
             ),
             Error::Unsupported(ref ty) => {
-                write!(f, "the type '{}' is not supported by the library", ty)
+                write!(
+                    f,
+                    "decoding of type '{}' is not supported by the library",
+                    ty
+                )
             }
             Error::Deserialize(ref e) => e.fmt(f),
             Error::Utf8(ref e) => e.fmt(f),
@@ -426,11 +430,11 @@ impl<'a, 'de> Deserializer<'de> for &'a mut Decoder<'de> {
         visitor.visit_byte_buf(self.decode_bytes()?.to_vec())
     }
 
-    fn deserialize_option<V>(self, _: V) -> Result<V::Value, Self::Error>
+    fn deserialize_option<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        Err(Error::Unsupported("Option<_>"))
+        visitor.visit_some(self)
     }
 
     fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -756,5 +760,35 @@ mod test {
             Decoder::new(b"d4:name11:Jerry Smith3:agei50e11:is_employedi0e9:signature6:jsmithe");
 
         assert_eq!(Person::deserialize(&mut de), Ok(jerry));
+    }
+
+    #[test]
+    fn deserialize_some() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct Person {
+            name: Option<String>,
+            age: u8,
+        };
+
+        let mut de = Decoder::new(b"d4:name5:Jerry3:agei50ee");
+        assert_eq!(
+            Person::deserialize(&mut de),
+            Ok(Person { name: Some("Jerry".to_string()), age: 50 })
+        )
+    }
+
+    #[test]
+    fn deserialize_none() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct Person {
+            name: Option<String>,
+            age: u8,
+        };
+
+        let mut de = Decoder::new(b"d3:agei50ee");
+        assert_eq!(
+            Person::deserialize(&mut de),
+            Ok(Person { name: None, age: 50 })
+        )
     }
 }

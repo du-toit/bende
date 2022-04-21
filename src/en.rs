@@ -41,7 +41,11 @@ impl std::fmt::Display for Error {
         match *self {
             Error::Io(ref e) => e.fmt(f),
             Error::Unsupported(ref ty) => {
-                write!(f, "the type '{}' is not supported by the library", ty)
+                write!(
+                    f,
+                    "encoding of type '{}' is not supported by the library",
+                    ty
+                )
             }
             Error::Serialize(ref e) => e.fmt(f),
         }
@@ -208,14 +212,14 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
     }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
-        Err(Error::Unsupported("Option<_>"))
+        Err(Error::Unsupported("None"))
     }
 
-    fn serialize_some<T: ?Sized>(self, _: &T) -> Result<Self::Ok, Self::Error>
+    fn serialize_some<T: ?Sized>(self, v: &T) -> Result<Self::Ok, Self::Error>
     where
         T: serde::Serialize,
     {
-        Err(Error::Unsupported("Option<_>"))
+        v.serialize(self)
     }
 
     fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
@@ -515,6 +519,7 @@ mod test {
     use serde::Serialize;
 
     use super::Encoder;
+    use super::Error;
 
     #[test]
     fn encode_int_unsigned() {
@@ -568,5 +573,35 @@ mod test {
             en.buf,
             b"d4:name11:Jerry Smith3:agei50e11:is_employedi0e9:signature6:jsmithe".to_vec()
         );
+    }
+
+    #[test]
+    fn serialize_some() {
+        #[derive(Debug, PartialEq, Serialize)]
+        struct Person {
+            name: Option<String>,
+            age: u8,
+        };
+
+        let jerry = Person { name: Some("Jerry".to_owned()), age: 50 };
+
+        let mut en = Encoder::new(vec![]);
+        assert!(jerry.serialize(&mut en).is_ok());
+        assert_eq!(en.buf, b"d4:name5:Jerry3:agei50ee".to_vec());
+    }
+
+    #[test]
+    #[should_panic]
+    fn serialize_none_err() {
+        #[derive(Debug, PartialEq, Serialize)]
+        struct Person {
+            name: Option<String>,
+            age: u8,
+        };
+
+        let jerry = Person { name: None, age: 50 };
+
+        let mut en = Encoder::new(vec![]);
+        jerry.serialize(&mut en).unwrap();
     }
 }
