@@ -228,9 +228,9 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
 
     fn serialize_unit_struct(
         self,
-        _: &'static str,
+        name: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
-        Ok(())
+        self.serialize_str(name)
     }
 
     fn serialize_unit_variant(
