@@ -245,12 +245,12 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
     fn serialize_newtype_struct<T: ?Sized>(
         self,
         _: &'static str,
-        _: &T,
+        v: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
         T: serde::Serialize,
     {
-        Ok(())
+        v.serialize(self)
     }
 
     fn serialize_newtype_variant<T: ?Sized>(
