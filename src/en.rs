@@ -730,6 +730,7 @@ mod test {
 
     use super::Encoder;
     use super::Error;
+    use super::KeyEncoder;
 
     #[test]
     fn encode_int_unsigned() {
@@ -840,5 +841,27 @@ mod test {
         let mut en = Encoder::new(vec![]);
         Foo(1995).serialize(&mut en).unwrap();
         assert_eq!(en.buf, b"i1995e".to_vec());
+    }
+
+    #[test]
+    fn encode_key_ok() {
+        let mut parent = Encoder::new(vec![]);
+
+        let en = KeyEncoder::new(&mut parent);
+        assert!("foo".serialize(en).is_ok());
+
+        let en = KeyEncoder::new(&mut parent);
+        assert!("foo".to_string().serialize(en).is_ok());
+    }
+
+    #[test]
+    fn encode_key_err() {
+        let mut parent = Encoder::new(vec![]);
+
+        let mut en = KeyEncoder::new(&mut parent);
+        assert!((0i32).serialize(en).is_err());
+
+        let mut en = KeyEncoder::new(&mut parent);
+        assert!((true).serialize(en).is_err());
     }
 }
