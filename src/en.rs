@@ -460,7 +460,7 @@ impl<'a, W: Write> SerializeMap for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
-        key.serialize(&mut *self.en)
+        key.serialize(KeyEncoder::new(self.en))
     }
 
     fn serialize_value<T: ?Sized>(
