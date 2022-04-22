@@ -726,6 +726,8 @@ impl<'a, W: Write> Serializer for KeyEncoder<'a, W> {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashMap;
+
     use serde::Serialize;
 
     use super::Encoder;
@@ -863,5 +865,23 @@ mod test {
 
         let mut en = KeyEncoder::new(&mut parent);
         assert!((true).serialize(en).is_err());
+    }
+
+    #[test]
+    fn serialize_map_ok() {
+        let mut map = HashMap::new();
+        map.insert("foo", "bar");
+
+        let mut en = Encoder::new(vec![]);
+        assert!(map.serialize(&mut en).is_ok());
+    }
+
+    #[test]
+    fn serialize_map_err() {
+        let mut map = HashMap::new();
+        map.insert(0, "bar");
+
+        let mut en = Encoder::new(vec![]);
+        assert!(map.serialize(&mut en).is_err());
     }
 }
