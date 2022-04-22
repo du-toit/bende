@@ -723,6 +723,12 @@ mod test {
     }
 
     #[test]
+    fn decode_bytes_empty() {
+        let mut de = Decoder::new(b"0:");
+        assert_eq!(de.decode_bytes(), Ok(b"".as_slice()));
+    }
+
+    #[test]
     fn decode_bytes_err() {
         let mut de = Decoder::new(b"4:foo");
         assert_eq!(de.decode_bytes(), Err(Error::EOF))
