@@ -550,6 +550,13 @@ mod test {
     }
 
     #[test]
+    fn encode_bytes_empty() {
+        let mut en = Encoder::new(vec![]);
+        assert!(en.encode_bytes(b"").is_ok());
+        assert_eq!(en.buf, b"0:".to_vec());
+    }
+
+    #[test]
     fn serialize_simple() {
         #[derive(Debug, PartialEq, Serialize)]
         struct Person {
