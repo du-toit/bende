@@ -5,7 +5,7 @@ version = "0.3.0"
 authors = ["Rick <rickz75dev@gmail.com>", "Halfnelson <ewoudvanrooyen@gmail.com>"]
 description = "A bencode encoding/decoding implementation backed by serde."
 
-categories = ["encoding", "decoding", "network-programming"]
+categories = ["encoding", "network-programming"]
 keywords = ["bencode", "serialize", "deserialize", "torrent", "bittorrent"]
 
 homepage = "https://github.com/Rickz75/bende"
