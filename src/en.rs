@@ -3,6 +3,7 @@
 use std::io::Error as IoError;
 use std::io::Write;
 
+use serde::ser::Impossible;
 use serde::ser::SerializeMap;
 use serde::ser::SerializeSeq;
 use serde::ser::SerializeStruct;
@@ -24,12 +25,15 @@ use super::TYPE_END;
 /// # Variants
 ///
 /// * `Io` - An I/O error from the standard library.
+/// * `InvalidKeyType` - When you try encoding a map with keys that are not of type string.
 /// * `Unsupported` - When you try encoding a type that is not currently supported by the library.
 /// * `Serialize` - A custom serde serialization error.
 #[derive(Debug)]
 pub enum Error {
     /// A standard I/O error.
     Io(IoError),
+    /// The encoder can only encode maps with keys that are of type string.
+    InvalidKeyType,
     /// Tried encoding a type that is not currently supported by the library.
     Unsupported(&'static str),
     /// A serde serialization error.
@@ -40,6 +44,10 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             Error::Io(ref e) => e.fmt(f),
+            Error::InvalidKeyType => write!(
+                f,
+                "encoder can only encode keys that are of type string"
+            ),
             Error::Unsupported(ref ty) => {
                 write!(
                     f,
@@ -452,7 +460,7 @@ impl<'a, W: Write> SerializeMap for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
-        key.serialize(&mut *self.en)
+        key.serialize(KeyEncoder::new(self.en))
     }
 
     fn serialize_value<T: ?Sized>(
@@ -514,12 +522,217 @@ impl<'a, W: Write> SerializeStructVariant for MapEncoder<'a, W> {
     }
 }
 
+/// An encoder exclusively used to ensure that map keys are of type string before encoding them.
+#[derive(Debug)]
+struct KeyEncoder<'a, W> {
+    en: &'a mut Encoder<W>,
+}
+
+impl<'a, W> KeyEncoder<'a, W> {
+    /// Constructs a new key encoder.
+    #[inline]
+    fn new(en: &'a mut Encoder<W>) -> KeyEncoder<'a, W> {
+        Self { en }
+    }
+}
+
+impl<'a, W: Write> Serializer for KeyEncoder<'a, W> {
+    type Ok = ();
+
+    type Error = Error;
+
+    type SerializeSeq = Impossible<(), Error>;
+
+    type SerializeTuple = Impossible<(), Error>;
+
+    type SerializeTupleStruct = Impossible<(), Error>;
+
+    type SerializeTupleVariant = Impossible<(), Error>;
+
+    type SerializeMap = Impossible<(), Error>;
+
+    type SerializeStruct = Impossible<(), Error>;
+
+    type SerializeStructVariant = Impossible<(), Error>;
+
+    fn serialize_bool(self, _: bool) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_i8(self, _: i8) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_i16(self, _: i16) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_i32(self, _: i32) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_i64(self, _: i64) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_u8(self, _: u8) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_u16(self, _: u16) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_u32(self, _: u32) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_u64(self, _: u64) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_f32(self, _: f32) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_f64(self, _: f64) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_char(self, _: char) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
+        self.en.serialize_str(v)
+    }
+
+    fn serialize_bytes(self, _: &[u8]) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_none(self) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_some<T: ?Sized>(self, _: &T) -> Result<Self::Ok, Self::Error>
+    where
+        T: Serialize,
+    {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_unit(self) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_unit_struct(
+        self,
+        _: &'static str,
+    ) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_unit_variant(
+        self,
+        _: &'static str,
+        _: u32,
+        _: &'static str,
+    ) -> Result<Self::Ok, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_newtype_struct<T: ?Sized>(
+        self,
+        _: &'static str,
+        _: &T,
+    ) -> Result<Self::Ok, Self::Error>
+    where
+        T: Serialize,
+    {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_newtype_variant<T: ?Sized>(
+        self,
+        _: &'static str,
+        _: u32,
+        _: &'static str,
+        _: &T,
+    ) -> Result<Self::Ok, Self::Error>
+    where
+        T: Serialize,
+    {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_seq(
+        self,
+        _: Option<usize>,
+    ) -> Result<Self::SerializeSeq, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_tuple(
+        self,
+        _: usize,
+    ) -> Result<Self::SerializeTuple, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_tuple_struct(
+        self,
+        _: &'static str,
+        _: usize,
+    ) -> Result<Self::SerializeTupleStruct, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_tuple_variant(
+        self,
+        _: &'static str,
+        _: u32,
+        _: &'static str,
+        _: usize,
+    ) -> Result<Self::SerializeTupleVariant, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_map(
+        self,
+        _: Option<usize>,
+    ) -> Result<Self::SerializeMap, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_struct(
+        self,
+        _: &'static str,
+        _: usize,
+    ) -> Result<Self::SerializeStruct, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+
+    fn serialize_struct_variant(
+        self,
+        _: &'static str,
+        _: u32,
+        _: &'static str,
+        _: usize,
+    ) -> Result<Self::SerializeStructVariant, Self::Error> {
+        Err(Error::InvalidKeyType)
+    }
+}
+
 #[cfg(test)]
 mod test {
+    use std::collections::HashMap;
+
     use serde::Serialize;
 
     use super::Encoder;
     use super::Error;
+    use super::KeyEncoder;
 
     #[test]
     fn encode_int_unsigned() {
@@ -630,5 +843,45 @@ mod test {
         let mut en = Encoder::new(vec![]);
         Foo(1995).serialize(&mut en).unwrap();
         assert_eq!(en.buf, b"i1995e".to_vec());
+    }
+
+    #[test]
+    fn encode_key_ok() {
+        let mut parent = Encoder::new(vec![]);
+
+        let en = KeyEncoder::new(&mut parent);
+        assert!("foo".serialize(en).is_ok());
+
+        let en = KeyEncoder::new(&mut parent);
+        assert!("foo".to_string().serialize(en).is_ok());
+    }
+
+    #[test]
+    fn encode_key_err() {
+        let mut parent = Encoder::new(vec![]);
+
+        let mut en = KeyEncoder::new(&mut parent);
+        assert!((0i32).serialize(en).is_err());
+
+        let mut en = KeyEncoder::new(&mut parent);
+        assert!((true).serialize(en).is_err());
+    }
+
+    #[test]
+    fn serialize_map_ok() {
+        let mut map = HashMap::new();
+        map.insert("foo", "bar");
+
+        let mut en = Encoder::new(vec![]);
+        assert!(map.serialize(&mut en).is_ok());
+    }
+
+    #[test]
+    fn serialize_map_err() {
+        let mut map = HashMap::new();
+        map.insert(0, "bar");
+
+        let mut en = Encoder::new(vec![]);
+        assert!(map.serialize(&mut en).is_err());
     }
 }

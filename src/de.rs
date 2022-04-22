@@ -630,7 +630,8 @@ impl<'a, 'de> MapAccess<'de> for MapDecoder<'a, 'de> {
                 self.de.advance(1);
                 Ok(None)
             }
-            Some(_) => seed.deserialize(&mut *self.de).map(Some),
+            Some(b'0'..=b'9') => seed.deserialize(&mut *self.de).map(Some),
+            Some(_) => Err(Error::Malformed),
             _ => Err(Error::EOF),
         }
     }
@@ -645,6 +646,8 @@ impl<'a, 'de> MapAccess<'de> for MapDecoder<'a, 'de> {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashMap;
+
     use serde::Deserialize;
 
     use super::{Decoder, Error};
@@ -842,5 +845,23 @@ mod test {
 
         let mut de = Decoder::new(b"i1995e");
         assert_eq!(Foo::deserialize(&mut de), Ok(Foo(1995)));
+    }
+
+    #[test]
+    fn deserialize_map_ok() {
+        let mut map = HashMap::new();
+        map.insert("foo", "bar");
+
+        let mut de = Decoder::new(b"d3:foo3:bare");
+        assert_eq!(HashMap::deserialize(&mut de), Ok(map))
+    }
+
+    #[test]
+    fn deserialize_map_err() {
+        let mut de = Decoder::new(b"di1995e3:fooe");
+        assert_eq!(
+            HashMap::<i32, &str>::deserialize(&mut de),
+            Err(Error::Malformed)
+        )
     }
 }
