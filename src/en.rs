@@ -521,6 +521,12 @@ impl<'a, W: Write> SerializeStructVariant for MapEncoder<'a, W> {
     }
 }
 
+/// An encoder exclusively used to ensure that map keys are of type string before encoding them.
+#[derive(Debug)]
+struct KeyEncoder<'a, W> {
+    en: &'a mut Encoder<W>,
+}
+
 #[cfg(test)]
 mod test {
     use serde::Serialize;
