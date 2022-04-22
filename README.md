@@ -22,7 +22,7 @@ Add the library as a dependency to [Cargo.toml](https://doc.rust-lang.org/cargo/
 
 ```toml
 [dependencies]
-bende = "0.2.0"
+bende = "0.3.0"
 ```
 
 ### Example
@@ -74,5 +74,6 @@ Don't forget to give the project a star! Thanks again!
 ## Notes
 
 * Both variants of `Option<_>` (Some and None) are supported by the decoder, **but** the encoder only supports `Some`.
+* Keys in a key-value object must be strings, otherwise an error is returned.
 * If you run into trouble encoding/decoding raw bytes, eg: `&[u8]` or `Vec<u8>` then use [this crate](https://crates.io/crates/serde_bytes).
 * The codebase is small (~1000 lines), easily digestible and filled with comments. If you're a first timer, you'll have a jolly time making your first contribution.
