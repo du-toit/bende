@@ -630,7 +630,8 @@ impl<'a, 'de> MapAccess<'de> for MapDecoder<'a, 'de> {
                 self.de.advance(1);
                 Ok(None)
             }
-            Some(_) => seed.deserialize(&mut *self.de).map(Some),
+            Some(b'0'..=b'9') => seed.deserialize(&mut *self.de).map(Some),
+            Some(_) => Err(Error::Malformed),
             _ => Err(Error::EOF),
         }
     }
