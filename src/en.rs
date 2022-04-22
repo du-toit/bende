@@ -24,12 +24,15 @@ use super::TYPE_END;
 /// # Variants
 ///
 /// * `Io` - An I/O error from the standard library.
+/// * `InvalidKeyType` - When you try encoding a map with keys that are not of type string.
 /// * `Unsupported` - When you try encoding a type that is not currently supported by the library.
 /// * `Serialize` - A custom serde serialization error.
 #[derive(Debug)]
 pub enum Error {
     /// A standard I/O error.
     Io(IoError),
+    /// The encoder can only encode maps with keys that are of type string.
+    InvalidKeyType,
     /// Tried encoding a type that is not currently supported by the library.
     Unsupported(&'static str),
     /// A serde serialization error.
@@ -40,6 +43,10 @@ impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match *self {
             Error::Io(ref e) => e.fmt(f),
+            Error::InvalidKeyType => write!(
+                f,
+                "encoder can only encode keys that are of type string"
+            ),
             Error::Unsupported(ref ty) => {
                 write!(
                     f,
