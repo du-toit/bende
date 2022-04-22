@@ -527,6 +527,14 @@ struct KeyEncoder<'a, W> {
     en: &'a mut Encoder<W>,
 }
 
+impl<'a, W> KeyEncoder<'a, W> {
+    /// Constructs a new key encoder.
+    #[inline]
+    fn new(en: &'a mut Encoder<W>) -> KeyEncoder<'a, W> {
+        Self { en }
+    }
+}
+
 #[cfg(test)]
 mod test {
     use serde::Serialize;
