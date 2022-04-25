@@ -936,4 +936,16 @@ mod test {
         let mut en = Encoder::new(vec![]);
         assert!(map.serialize(&mut en).is_err());
     }
+
+    #[test]
+    fn serialized_map_is_sorted() {
+        let mut map = HashMap::new();
+        map.insert("foo", "bar");
+        map.insert("baz", "faz");
+
+        let mut en = Encoder::new(vec![]);
+        map.serialize(&mut en).unwrap();
+
+        assert_eq!(en.buf, b"d3:baz3:faz3:foo3:bare");
+    }
 }
