@@ -1,5 +1,6 @@
 //! Bencode encoding and serialization.
 
+use std::collections::BTreeMap;
 use std::io::Error as IoError;
 use std::io::Write;
 
@@ -26,6 +27,8 @@ use super::TYPE_END;
 ///
 /// * `Io` - An I/O error from the standard library.
 /// * `InvalidKeyType` - When you try encoding a map with keys that are not of type string.
+/// * `KeyWithNoValue` - When you try encoding a map entry's key without a value.
+/// * `ValueWithNoKey` - When you try encoding a map entry's value without a key.
 /// * `Unsupported` - When you try encoding a type that is not currently supported by the library.
 /// * `Serialize` - A custom serde serialization error.
 #[derive(Debug)]
@@ -34,6 +37,10 @@ pub enum Error {
     Io(IoError),
     /// The encoder can only encode maps with keys that are of type string.
     InvalidKeyType,
+    /// Tried encoding a map entry's key without a value.
+    KeyWithNoValue,
+    /// Tried encoding a map entry's value without a key.
+    ValueWithNoKey,
     /// Tried encoding a type that is not currently supported by the library.
     Unsupported(&'static str),
     /// A serde serialization error.
@@ -48,6 +55,12 @@ impl std::fmt::Display for Error {
                 f,
                 "encoder can only encode keys that are of type string"
             ),
+            Error::KeyWithNoValue => {
+                write!(f, "tried encoding a map entry's key without a value")
+            }
+            Error::ValueWithNoKey => {
+                write!(f, "tried encoding a map entry's value without a key")
+            }
             Error::Unsupported(ref ty) => {
                 write!(
                     f,
@@ -435,19 +448,21 @@ impl<'a, W: Write> SerializeTupleVariant for SeqEncoder<'a, W> {
     }
 }
 
-/// An encoder used to encode key-values in a map or struct.
+/// An encoder used to store and **sort** map or struct entries **before** encoding them.
 ///
 /// **Note** that this type cannot be constructed from outside this crate, and is only public because of the way the library's serialization is implemented.
 #[derive(Debug)]
 pub struct MapEncoder<'a, W> {
-    en: &'a mut Encoder<W>,
+    encoder: &'a mut Encoder<W>,
+    entries: BTreeMap<Vec<u8>, Vec<u8>>,
+    current_key: Option<Vec<u8>>,
 }
 
 impl<'a, W> MapEncoder<'a, W> {
     /// Constructs a new map encoder.
     #[inline]
-    fn new(en: &'a mut Encoder<W>) -> MapEncoder<'a, W> {
-        Self { en }
+    fn new(encoder: &'a mut Encoder<W>) -> MapEncoder<'a, W> {
+        Self { encoder, entries: BTreeMap::new(), current_key: None }
     }
 }
 
@@ -460,7 +475,16 @@ impl<'a, W: Write> SerializeMap for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
-        key.serialize(KeyEncoder::new(self.en))
+        if self.current_key.is_some() {
+            return Err(Error::KeyWithNoValue);
+        }
+
+        let mut parent = Encoder::new(vec![]);
+        let en = KeyEncoder::new(&mut parent);
+        key.serialize(en)?;
+
+        self.current_key = Some(parent.into_inner());
+        Ok(())
     }
 
     fn serialize_value<T: ?Sized>(
@@ -470,11 +494,23 @@ impl<'a, W: Write> SerializeMap for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
-        value.serialize(&mut *self.en)
+        // We don't insert serialized keys into the BTreeMap, otherwise the keys will be sorted by their length first, eg: `1:z` will come before `2:aa`.
+        let key = self.current_key.take().ok_or(Error::ValueWithNoKey)?;
+        let val = super::encode(&value)?;
+
+        self.entries.insert(key, val);
+        Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.en.tag(TYPE_END)
+        for (key, val) in self.entries {
+            // We need to explicitly use `serialize_bytes` for the keys, otherwise it will be serialized as a list of integers, eg: `li4ei9ei0ee`.
+            self.encoder.serialize_bytes(&key)?;
+
+            // We simply write the values to the buffer, otherwise we'll be encoding them **twice**, eg: `3:foo` then becomes `5:3:foo`.
+            self.encoder.write(&val)?;
+        }
+        self.encoder.tag(TYPE_END)
     }
 }
 
@@ -486,17 +522,25 @@ impl<'a, W: Write> SerializeStruct for MapEncoder<'a, W> {
     fn serialize_field<T: ?Sized>(
         &mut self,
         key: &'static str,
-        value: &T,
+        val: &T,
     ) -> Result<(), Self::Error>
     where
         T: serde::Serialize,
     {
-        key.serialize(&mut *self.en)?;
-        value.serialize(&mut *self.en)
+        // No need to use the `KeyEncoder` because we know the key is of type string.
+        let key = key.as_bytes().to_vec();
+        let val = super::encode(&val)?;
+
+        self.entries.insert(key, val);
+        Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.en.tag(TYPE_END)
+        for (key, val) in self.entries {
+            self.encoder.serialize_bytes(&key)?;
+            self.encoder.write(&val)?;
+        }
+        self.encoder.tag(TYPE_END)
     }
 }
 
@@ -508,17 +552,24 @@ impl<'a, W: Write> SerializeStructVariant for MapEncoder<'a, W> {
     fn serialize_field<T: ?Sized>(
         &mut self,
         key: &'static str,
-        value: &T,
+        val: &T,
     ) -> Result<(), Self::Error>
     where
         T: serde::Serialize,
     {
-        key.serialize(&mut *self.en)?;
-        value.serialize(&mut *self.en)
+        let key = key.as_bytes().to_vec();
+        let val = super::encode(&val)?;
+
+        self.entries.insert(key, val);
+        Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.en.tag(TYPE_END)
+        for (key, val) in self.entries {
+            self.encoder.serialize_bytes(&key)?;
+            self.encoder.write(&val)?;
+        }
+        self.encoder.tag(TYPE_END)
     }
 }
 
@@ -604,7 +655,8 @@ impl<'a, W: Write> Serializer for KeyEncoder<'a, W> {
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
-        self.en.serialize_str(v)
+        // The key encoder should just write the raw string to the buffer. Note that this means you would need to serialize it afterwards.
+        self.en.write(v.as_bytes())
     }
 
     fn serialize_bytes(self, _: &[u8]) -> Result<Self::Ok, Self::Error> {
@@ -791,7 +843,7 @@ mod test {
         assert!(jerry.serialize(&mut en).is_ok());
         assert_eq!(
             en.buf,
-            b"d4:name11:Jerry Smith3:agei50e11:is_employedi0e9:signature6:jsmithe".to_vec()
+            b"d3:agei50e11:is_employedi0e4:name11:Jerry Smith9:signature6:jsmithe".to_vec()
         );
     }
 
@@ -807,7 +859,7 @@ mod test {
 
         let mut en = Encoder::new(vec![]);
         assert!(jerry.serialize(&mut en).is_ok());
-        assert_eq!(en.buf, b"d4:name5:Jerry3:agei50ee".to_vec());
+        assert_eq!(en.buf, b"d3:agei50e4:name5:Jerrye".to_vec());
     }
 
     #[test]
@@ -883,5 +935,34 @@ mod test {
 
         let mut en = Encoder::new(vec![]);
         assert!(map.serialize(&mut en).is_err());
+    }
+
+    #[test]
+    fn serialized_map_is_sorted() {
+        let mut map = HashMap::new();
+        map.insert("foo", "bar");
+        map.insert("baz", "faz");
+
+        let mut en = Encoder::new(vec![]);
+        map.serialize(&mut en).unwrap();
+
+        assert_eq!(en.buf, b"d3:baz3:faz3:foo3:bare");
+    }
+
+    #[test]
+    fn serialized_struct_is_sorted() {
+        #[derive(Debug, PartialEq, Serialize)]
+        struct Foo {
+            c: i32,
+            b: i32,
+            a: i32,
+        };
+
+        let foo = Foo { c: 3, b: 2, a: 1 };
+
+        let mut en = Encoder::new(vec![]);
+        foo.serialize(&mut en).unwrap();
+
+        assert_eq!(en.buf, b"d1:ai1e1:bi2e1:ci3ee")
     }
 }
