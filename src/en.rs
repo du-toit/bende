@@ -619,7 +619,8 @@ impl<'a, W: Write> Serializer for KeyEncoder<'a, W> {
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
-        self.en.serialize_str(v)
+        // The key encoder should just write the raw string to the buffer. Note that this means you would need to serialize it afterwards.
+        self.en.write(v.as_bytes())
     }
 
     fn serialize_bytes(self, _: &[u8]) -> Result<Self::Ok, Self::Error> {
