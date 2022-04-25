@@ -521,16 +521,24 @@ impl<'a, W: Write> SerializeStruct for MapEncoder<'a, W> {
     fn serialize_field<T: ?Sized>(
         &mut self,
         key: &'static str,
-        value: &T,
+        val: &T,
     ) -> Result<(), Self::Error>
     where
         T: serde::Serialize,
     {
-        key.serialize(&mut *self.encoder)?;
-        value.serialize(&mut *self.encoder)
+        // No need to use the `KeyEncoder` because we know the key is of type string.
+        let key = key.as_bytes().to_vec();
+        let val = super::encode(&val)?;
+
+        self.entries.insert(key, val);
+        Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
+        for (key, val) in self.entries {
+            self.encoder.serialize_bytes(&key)?;
+            self.encoder.write(&val)?;
+        }
         self.encoder.tag(TYPE_END)
     }
 }
@@ -543,16 +551,23 @@ impl<'a, W: Write> SerializeStructVariant for MapEncoder<'a, W> {
     fn serialize_field<T: ?Sized>(
         &mut self,
         key: &'static str,
-        value: &T,
+        val: &T,
     ) -> Result<(), Self::Error>
     where
         T: serde::Serialize,
     {
-        key.serialize(&mut *self.encoder)?;
-        value.serialize(&mut *self.encoder)
+        let key = key.as_bytes().to_vec();
+        let val = super::encode(&val)?;
+
+        self.entries.insert(key, val);
+        Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
+        for (key, val) in self.entries {
+            self.encoder.serialize_bytes(&key)?;
+            self.encoder.write(&val)?;
+        }
         self.encoder.tag(TYPE_END)
     }
 }
