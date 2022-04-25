@@ -842,7 +842,7 @@ mod test {
         assert!(jerry.serialize(&mut en).is_ok());
         assert_eq!(
             en.buf,
-            b"d4:name11:Jerry Smith3:agei50e11:is_employedi0e9:signature6:jsmithe".to_vec()
+            b"d3:agei50e11:is_employedi0e4:name11:Jerry Smith9:signature6:jsmithe".to_vec()
         );
     }
 
