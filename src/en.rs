@@ -26,6 +26,7 @@ use super::TYPE_END;
 ///
 /// * `Io` - An I/O error from the standard library.
 /// * `InvalidKeyType` - When you try encoding a map with keys that are not of type string.
+/// * `KeyWithNoValue` - When you try encoding a map entry's key without a value.
 /// * `Unsupported` - When you try encoding a type that is not currently supported by the library.
 /// * `Serialize` - A custom serde serialization error.
 #[derive(Debug)]
@@ -34,6 +35,8 @@ pub enum Error {
     Io(IoError),
     /// The encoder can only encode maps with keys that are of type string.
     InvalidKeyType,
+    /// Tried encoding a map entry's key without a value.
+    KeyWithNoValue,
     /// Tried encoding a type that is not currently supported by the library.
     Unsupported(&'static str),
     /// A serde serialization error.
@@ -48,6 +51,9 @@ impl std::fmt::Display for Error {
                 f,
                 "encoder can only encode keys that are of type string"
             ),
+            Error::KeyWithNoValue => {
+                write!(f, "tried encoding a map entry's key without a value")
+            }
             Error::Unsupported(ref ty) => {
                 write!(
                     f,
