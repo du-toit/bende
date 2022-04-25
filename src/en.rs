@@ -494,6 +494,7 @@ impl<'a, W: Write> SerializeMap for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
+        // We don't insert serialized keys into the BTreeMap, otherwise the keys will be sorted by their length first, eg: `1:z` will come before `2:aa`.
         let key = self.current_key.take().ok_or(Error::ValueWithNoKey)?;
         let val = super::encode(&value)?;
 
