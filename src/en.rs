@@ -446,14 +446,14 @@ impl<'a, W: Write> SerializeTupleVariant for SeqEncoder<'a, W> {
 /// **Note** that this type cannot be constructed from outside this crate, and is only public because of the way the library's serialization is implemented.
 #[derive(Debug)]
 pub struct MapEncoder<'a, W> {
-    en: &'a mut Encoder<W>,
+    encoder: &'a mut Encoder<W>,
 }
 
 impl<'a, W> MapEncoder<'a, W> {
     /// Constructs a new map encoder.
     #[inline]
-    fn new(en: &'a mut Encoder<W>) -> MapEncoder<'a, W> {
-        Self { en }
+    fn new(encoder: &'a mut Encoder<W>) -> MapEncoder<'a, W> {
+        Self { encoder }
     }
 }
 
@@ -466,7 +466,7 @@ impl<'a, W: Write> SerializeMap for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
-        key.serialize(KeyEncoder::new(self.en))
+        key.serialize(KeyEncoder::new(self.encoder))
     }
 
     fn serialize_value<T: ?Sized>(
@@ -476,11 +476,11 @@ impl<'a, W: Write> SerializeMap for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
-        value.serialize(&mut *self.en)
+        value.serialize(&mut *self.encoder)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.en.tag(TYPE_END)
+        self.encoder.tag(TYPE_END)
     }
 }
 
@@ -497,12 +497,12 @@ impl<'a, W: Write> SerializeStruct for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
-        key.serialize(&mut *self.en)?;
-        value.serialize(&mut *self.en)
+        key.serialize(&mut *self.encoder)?;
+        value.serialize(&mut *self.encoder)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.en.tag(TYPE_END)
+        self.encoder.tag(TYPE_END)
     }
 }
 
@@ -519,12 +519,12 @@ impl<'a, W: Write> SerializeStructVariant for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
-        key.serialize(&mut *self.en)?;
-        value.serialize(&mut *self.en)
+        key.serialize(&mut *self.encoder)?;
+        value.serialize(&mut *self.encoder)
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.en.tag(TYPE_END)
+        self.encoder.tag(TYPE_END)
     }
 }
 
