@@ -449,13 +449,14 @@ impl<'a, W: Write> SerializeTupleVariant for SeqEncoder<'a, W> {
 pub struct MapEncoder<'a, W> {
     encoder: &'a mut Encoder<W>,
     entries: BTreeMap<Vec<u8>, Vec<u8>>,
+    current_key: Option<Vec<u8>>,
 }
 
 impl<'a, W> MapEncoder<'a, W> {
     /// Constructs a new map encoder.
     #[inline]
     fn new(encoder: &'a mut Encoder<W>) -> MapEncoder<'a, W> {
-        Self { encoder, entries: BTreeMap::new() }
+        Self { encoder, entries: BTreeMap::new(), current_key: None }
     }
 }
 
