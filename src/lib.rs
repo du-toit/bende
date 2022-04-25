@@ -3,7 +3,7 @@
 //! This library exposes two simple functions:
 //!
 //! * [`decode`] - Which you can use to decode bencoded bytes into a **deserializable** type.
-//! * [`encode`] - Which you can use to encode a **serializable** type into bencoded byte.
+//! * [`encode`] - Which you can use to encode a **serializable** type into bencoded bytes.
 //!
 //! You'd also find error types for both encoding and decoding, alongside the [`Encoder`](en::Encoder) and [`Decoder`](de::Decoder) types.
 
