@@ -948,4 +948,21 @@ mod test {
 
         assert_eq!(en.buf, b"d3:baz3:faz3:foo3:bare");
     }
+
+    #[test]
+    fn serialized_struct_is_sorted() {
+        #[derive(Debug, PartialEq, Serialize)]
+        struct Foo {
+            c: i32,
+            b: i32,
+            a: i32,
+        };
+
+        let foo = Foo { c: 3, b: 2, a: 1 };
+
+        let mut en = Encoder::new(vec![]);
+        foo.serialize(&mut en).unwrap();
+
+        assert_eq!(en.buf, b"d1:ai1e1:bi2e1:ci3ee")
+    }
 }
