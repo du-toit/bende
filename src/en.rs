@@ -858,7 +858,7 @@ mod test {
 
         let mut en = Encoder::new(vec![]);
         assert!(jerry.serialize(&mut en).is_ok());
-        assert_eq!(en.buf, b"d4:name5:Jerry3:agei50ee".to_vec());
+        assert_eq!(en.buf, b"d3:agei50e4:name5:Jerrye".to_vec());
     }
 
     #[test]
