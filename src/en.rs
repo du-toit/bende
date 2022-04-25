@@ -1,5 +1,6 @@
 //! Bencode encoding and serialization.
 
+use std::collections::BTreeMap;
 use std::io::Error as IoError;
 use std::io::Write;
 
@@ -447,13 +448,14 @@ impl<'a, W: Write> SerializeTupleVariant for SeqEncoder<'a, W> {
 #[derive(Debug)]
 pub struct MapEncoder<'a, W> {
     encoder: &'a mut Encoder<W>,
+    entries: BTreeMap<Vec<u8>, Vec<u8>>,
 }
 
 impl<'a, W> MapEncoder<'a, W> {
     /// Constructs a new map encoder.
     #[inline]
     fn new(encoder: &'a mut Encoder<W>) -> MapEncoder<'a, W> {
-        Self { encoder }
+        Self { encoder, entries: BTreeMap::new() }
     }
 }
 
