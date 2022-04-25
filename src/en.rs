@@ -448,7 +448,7 @@ impl<'a, W: Write> SerializeTupleVariant for SeqEncoder<'a, W> {
     }
 }
 
-/// An encoder used to encode key-values in a map or struct.
+/// An encoder used to store and **sort** map or struct entries **before** encoding them.
 ///
 /// **Note** that this type cannot be constructed from outside this crate, and is only public because of the way the library's serialization is implemented.
 #[derive(Debug)]
