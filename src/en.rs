@@ -475,7 +475,16 @@ impl<'a, W: Write> SerializeMap for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
-        key.serialize(KeyEncoder::new(self.encoder))
+        if self.current_key.is_some() {
+            return Err(Error::KeyWithNoValue);
+        }
+
+        let mut parent = Encoder::new(vec![]);
+        let en = KeyEncoder::new(&mut parent);
+        key.serialize(en)?;
+
+        self.current_key = Some(parent.into_inner());
+        Ok(())
     }
 
     fn serialize_value<T: ?Sized>(
@@ -485,10 +494,21 @@ impl<'a, W: Write> SerializeMap for MapEncoder<'a, W> {
     where
         T: serde::Serialize,
     {
-        value.serialize(&mut *self.encoder)
+        let key = self.current_key.take().ok_or(Error::ValueWithNoKey)?;
+        let val = super::encode(&value)?;
+
+        self.entries.insert(key, val);
+        Ok(())
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
+        for (key, val) in self.entries {
+            // We need to explicitly use `serialize_bytes` for the keys, otherwise it will be serialized as a list of integers, eg: `li4ei9ei0ee`.
+            self.encoder.serialize_bytes(&key)?;
+
+            // We simply write the values to the buffer, otherwise we'll be encoding them **twice**, eg: `3:foo` then becomes `5:3:foo`.
+            self.encoder.write(&val)?;
+        }
         self.encoder.tag(TYPE_END)
     }
 }
