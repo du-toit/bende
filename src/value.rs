@@ -1,4 +1,5 @@
 use std::collections::BTreeMap;
+use std::collections::HashMap;
 use std::fmt;
 
 use serde::de::Visitor;
@@ -194,6 +195,12 @@ impl From<&[Value]> for Value {
 impl From<Vec<Value>> for Value {
     fn from(v: Vec<Value>) -> Self {
         Value::List(v)
+    }
+}
+
+impl From<HashMap<String, Value>> for Value {
+    fn from(v: HashMap<String, Value>) -> Self {
+        Value::Dict(BTreeMap::from_iter(v.into_iter()))
     }
 }
 
