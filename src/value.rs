@@ -48,3 +48,15 @@ impl Serialize for Value {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::Value;
+    use crate::{decode, encode};
+
+    #[test]
+    fn encode_value_int() {
+        let mut val = Value::Int(1995);
+        assert_eq!(encode(&val).unwrap(), b"i1995e");
+    }
+}
