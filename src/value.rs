@@ -167,6 +167,12 @@ impl From<&[u8]> for Value {
     }
 }
 
+impl From<Vec<u8>> for Value {
+    fn from(v: Vec<u8>) -> Self {
+        Value::Text(v)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::{BTreeMap, HashMap};
