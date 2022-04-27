@@ -140,7 +140,7 @@ impl<'de> Deserialize<'de> for Value {
 
 #[cfg(test)]
 mod test {
-    use std::collections::HashMap;
+    use std::collections::{BTreeMap, HashMap};
 
     use super::Value;
     use crate::{decode, encode};
@@ -191,6 +191,17 @@ mod test {
         assert_eq!(
             decode::<Value>(b"li1995e3:fooe").unwrap(),
             Value::List(vec![Value::Int(1995), Value::Text(b"foo".to_vec())])
+        )
+    }
+
+    #[test]
+    fn decode_value_dict() {
+        let mut map = BTreeMap::new();
+        map.insert("foo".to_string(), Value::Int(1995));
+        map.insert("bar".to_string(), Value::Text(b"faz".to_vec()));
+        assert_eq!(
+            decode::<Value>(b"d3:bar3:faz3:fooi1995ee").unwrap(),
+            Value::Dict(map)
         )
     }
 }
