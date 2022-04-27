@@ -65,4 +65,11 @@ mod test {
         let mut val = Value::Text(b"foo".to_vec());
         assert_eq!(encode(&val).unwrap(), b"3:foo");
     }
+
+    #[test]
+    fn encode_value_list() {
+        let mut val =
+            Value::List(vec![Value::Int(1995), Value::Text(b"foo".to_vec())]);
+        assert_eq!(encode(&val).unwrap(), b"li1995e3:fooe");
+    }
 }
