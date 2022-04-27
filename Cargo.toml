@@ -17,10 +17,8 @@ publish = true
 edition = "2021"
 
 [dependencies]
-
-[dependencies.serde]
-version = "1"
-features = ["derive"]
+serde = "1"
 
 [dev-dependencies]
+serde = { version = "1", features = ["derive"] }
 serde_bytes = "0.11"
