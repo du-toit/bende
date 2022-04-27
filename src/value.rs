@@ -172,4 +172,9 @@ mod test {
 
         assert_eq!(encode(&map).unwrap(), b"d3:bar3:faz3:fooi1995ee");
     }
+
+    #[test]
+    fn decode_value_int() {
+        assert_eq!(decode::<Value>(b"i1995e").unwrap(), Value::Int(1995));
+    }
 }
