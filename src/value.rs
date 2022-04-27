@@ -173,6 +173,12 @@ impl From<Vec<u8>> for Value {
     }
 }
 
+impl From<&str> for Value {
+    fn from(v: &str) -> Self {
+        Value::Text(v.as_bytes().to_owned())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::{BTreeMap, HashMap};
