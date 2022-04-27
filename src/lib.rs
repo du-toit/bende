@@ -9,6 +9,7 @@
 
 pub mod de;
 pub mod en;
+pub mod value;
 
 use serde::{Deserialize, Serialize};
 
