@@ -8,4 +8,6 @@ pub enum Value {
     Int(i64),
     /// An array of bytes that may or **may not** be valid UTF-8.
     Text(Vec<u8>),
+    /// A list of bencode values.
+    List(List),
 }
