@@ -151,6 +151,9 @@ macro_rules! impl_value_from_num {
     }
 }
 
+// We need to skip i64.
+impl_value_from_num!(u8, u16, u32, u64, usize, i8, i16, i32, isize);
+
 // We do this manually as to avoid casting `i64 as i64`.
 impl From<i64> for Value {
     fn from(v: i64) -> Self {
