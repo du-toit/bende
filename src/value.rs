@@ -1,3 +1,11 @@
+//! Bencode data types.
+//!
+//! The types included in this module are:
+//!
+//! * [`Value`] - An enumeration over the different bencode data types.
+//! * [`List`] - A list of bencode values.
+//! * [`Dict`] - A **sorted** key-value object.
+
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::fmt;
