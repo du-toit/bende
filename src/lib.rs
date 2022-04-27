@@ -5,6 +5,8 @@
 //! * [`decode`] - Which you can use to decode bencoded bytes into a **deserializable** type.
 //! * [`encode`] - Which you can use to encode a **serializable** type into bencoded bytes.
 //!
+//! Additionally, we have the [`Value`] type that represents any valid bencode data type. It also implements [`Serialize`] and [`Deserialize`].
+//!
 //! You'd also find error types for both encoding and decoding, alongside the [`Encoder`](en::Encoder) and [`Decoder`](de::Decoder) types.
 
 pub mod de;
