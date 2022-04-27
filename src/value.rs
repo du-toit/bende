@@ -59,4 +59,10 @@ mod test {
         let mut val = Value::Int(1995);
         assert_eq!(encode(&val).unwrap(), b"i1995e");
     }
+
+    #[test]
+    fn encode_value_text() {
+        let mut val = Value::Text(b"foo".to_vec());
+        assert_eq!(encode(&val).unwrap(), b"3:foo");
+    }
 }
