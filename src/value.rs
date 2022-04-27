@@ -161,6 +161,12 @@ impl From<i64> for Value {
     }
 }
 
+impl From<&[u8]> for Value {
+    fn from(v: &[u8]) -> Self {
+        Value::Text(v.to_owned())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::{BTreeMap, HashMap};
