@@ -177,4 +177,12 @@ mod test {
     fn decode_value_int() {
         assert_eq!(decode::<Value>(b"i1995e").unwrap(), Value::Int(1995));
     }
+
+    #[test]
+    fn decode_value_text() {
+        assert_eq!(
+            decode::<Value>(b"3:foo").unwrap(),
+            Value::Text(b"foo".to_vec())
+        );
+    }
 }
