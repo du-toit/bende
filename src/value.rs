@@ -185,6 +185,12 @@ impl From<String> for Value {
     }
 }
 
+impl From<&[Value]> for Value {
+    fn from(v: &[Value]) -> Self {
+        Value::List(v.iter().cloned().collect())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::{BTreeMap, HashMap};
