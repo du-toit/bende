@@ -1,6 +1,6 @@
 [package]
 name = "bende"
-version = "0.4.0"
+version = "0.4.1"
 
 authors = ["Rick <rickz75dev@gmail.com>", "Halfnelson <ewoudvanrooyen@gmail.com>"]
 description = "A bencode encoding/decoding implementation backed by serde."
