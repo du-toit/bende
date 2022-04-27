@@ -51,6 +51,8 @@ impl Serialize for Value {
 
 #[cfg(test)]
 mod test {
+    use std::collections::HashMap;
+
     use super::Value;
     use crate::{decode, encode};
 
@@ -71,5 +73,14 @@ mod test {
         let mut val =
             Value::List(vec![Value::Int(1995), Value::Text(b"foo".to_vec())]);
         assert_eq!(encode(&val).unwrap(), b"li1995e3:fooe");
+    }
+
+    #[test]
+    fn encode_value_dict() {
+        let mut map = HashMap::new();
+        map.insert("foo".to_string(), Value::Int(1995));
+        map.insert("bar".to_string(), Value::Text(b"faz".to_vec()));
+
+        assert_eq!(encode(&map).unwrap(), b"d3:bar3:faz3:fooi1995ee");
     }
 }
