@@ -138,6 +138,19 @@ impl<'de> Deserialize<'de> for Value {
     }
 }
 
+/// Implements `From<T> for Value` for any numerical type.
+macro_rules! impl_value_from_num {
+    ($($t:ty),*) => {
+        $(
+            impl From<$t> for Value {
+                fn from(v: $t) -> Value {
+                    Value::Int(v as i64)
+                }
+            }
+        )*
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::{BTreeMap, HashMap};
