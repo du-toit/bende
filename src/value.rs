@@ -204,6 +204,12 @@ impl From<HashMap<String, Value>> for Value {
     }
 }
 
+impl From<BTreeMap<String, Value>> for Value {
+    fn from(v: BTreeMap<String, Value>) -> Self {
+        Value::Dict(v)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::{BTreeMap, HashMap};
