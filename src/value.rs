@@ -179,6 +179,12 @@ impl From<&str> for Value {
     }
 }
 
+impl From<String> for Value {
+    fn from(v: String) -> Self {
+        Value::Text(v.into_bytes())
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::{BTreeMap, HashMap};
