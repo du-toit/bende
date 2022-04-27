@@ -151,6 +151,13 @@ macro_rules! impl_value_from_num {
     }
 }
 
+// We do this manually as to avoid casting `i64 as i64`.
+impl From<i64> for Value {
+    fn from(v: i64) -> Self {
+        Value::Int(v)
+    }
+}
+
 #[cfg(test)]
 mod test {
     use std::collections::{BTreeMap, HashMap};
