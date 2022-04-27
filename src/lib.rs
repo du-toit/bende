@@ -11,6 +11,8 @@ pub mod de;
 pub mod en;
 pub mod value;
 
+pub use value::Value;
+
 use serde::{Deserialize, Serialize};
 
 /// Denotes the start of an integer - `i`.
