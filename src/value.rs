@@ -1,5 +1,9 @@
 use std::collections::BTreeMap;
 
+use serde::ser::SerializeMap;
+use serde::ser::SerializeSeq;
+use serde::Serialize;
+
 /// A list of bencode values.
 pub type List = Vec<Value>;
 
@@ -17,4 +21,30 @@ pub enum Value {
     List(List),
     /// A key-value map with keys that are UTF-8 valid strings.
     Dict(Dict),
+}
+
+impl Serialize for Value {
+    fn serialize<S>(&self, ser: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match *self {
+            Value::Int(v) => ser.serialize_i64(v),
+            Value::Text(ref v) => ser.serialize_bytes(v),
+            Value::List(ref v) => {
+                let mut seq = ser.serialize_seq(Some(v.len()))?;
+                for elem in v {
+                    seq.serialize_element(elem)?;
+                }
+                seq.end()
+            }
+            Value::Dict(ref v) => {
+                let mut map = ser.serialize_map(Some(v.len()))?;
+                for (key, val) in v {
+                    map.serialize_entry(key, val)?;
+                }
+                map.end()
+            }
+        }
+    }
 }
