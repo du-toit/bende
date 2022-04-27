@@ -185,4 +185,12 @@ mod test {
             Value::Text(b"foo".to_vec())
         );
     }
+
+    #[test]
+    fn decode_value_list() {
+        assert_eq!(
+            decode::<Value>(b"li1995e3:fooe").unwrap(),
+            Value::List(vec![Value::Int(1995), Value::Text(b"foo".to_vec())])
+        )
+    }
 }
