@@ -1,7 +1,10 @@
 use std::collections::BTreeMap;
+use std::fmt;
 
+use serde::de::Visitor;
 use serde::ser::SerializeMap;
 use serde::ser::SerializeSeq;
+use serde::Deserialize;
 use serde::Serialize;
 
 /// A list of bencode values.
@@ -46,6 +49,92 @@ impl Serialize for Value {
                 map.end()
             }
         }
+    }
+}
+
+impl<'de> Deserialize<'de> for Value {
+    fn deserialize<D>(de: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        struct ValueVisitor;
+
+        impl<'de> Visitor<'de> for ValueVisitor {
+            type Value = Value;
+
+            fn expecting(&self, f: &mut fmt::Formatter) -> fmt::Result {
+                f.write_str("any valid bencode type")
+            }
+
+            fn visit_i64<E>(self, v: i64) -> Result<Value, E> {
+                Ok(Value::Int(v))
+            }
+
+            fn visit_u64<E>(self, v: u64) -> Result<Value, E> {
+                Ok(Value::Int(v as i64))
+            }
+
+            fn visit_str<E>(self, v: &str) -> Result<Value, E> {
+                Ok(Value::Text(v.as_bytes().to_owned()))
+            }
+
+            fn visit_borrowed_str<E>(self, v: &'de str) -> Result<Value, E>
+            where
+                E: serde::de::Error,
+            {
+                self.visit_str(v)
+            }
+
+            fn visit_string<E>(self, v: String) -> Result<Value, E> {
+                Ok(Value::Text(v.into_bytes()))
+            }
+
+            fn visit_bytes<E>(self, v: &[u8]) -> Result<Self::Value, E> {
+                Ok(Value::Text(v.to_owned()))
+            }
+
+            fn visit_borrowed_bytes<E>(self, v: &'de [u8]) -> Result<Value, E>
+            where
+                E: serde::de::Error,
+            {
+                self.visit_bytes(v)
+            }
+
+            fn visit_byte_buf<E>(self, v: Vec<u8>) -> Result<Self::Value, E> {
+                Ok(Value::Text(v))
+            }
+
+            fn visit_some<D>(self, de: D) -> Result<Self::Value, D::Error>
+            where
+                D: serde::Deserializer<'de>,
+            {
+                Deserialize::deserialize(de)
+            }
+
+            fn visit_seq<A>(self, mut access: A) -> Result<Value, A::Error>
+            where
+                A: serde::de::SeqAccess<'de>,
+            {
+                let mut list = Vec::new();
+                while let Some(elem) = access.next_element()? {
+                    list.push(elem);
+                }
+                Ok(Value::List(list))
+            }
+
+            fn visit_map<A>(self, mut access: A) -> Result<Value, A::Error>
+            where
+                A: serde::de::MapAccess<'de>,
+            {
+                let mut dict = BTreeMap::new();
+                while let Some((key, val)) = access.next_entry()? {
+                    dict.insert(key, val);
+                }
+                Ok(Value::Dict(dict))
+            }
+        }
+
+        de.deserialize_any(ValueVisitor)
     }
 }
 
