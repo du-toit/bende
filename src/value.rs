@@ -15,4 +15,6 @@ pub enum Value {
     Text(Vec<u8>),
     /// A list of bencode values.
     List(List),
+    /// A key-value map with keys that are UTF-8 valid strings.
+    Dict(Dict),
 }
