@@ -789,7 +789,7 @@ mod test {
         struct Person {
             name: Option<String>,
             age: u8,
-        };
+        }
 
         let mut de = Decoder::new(b"d4:name5:Jerry3:agei50ee");
         assert_eq!(
@@ -804,7 +804,7 @@ mod test {
         struct Person {
             name: Option<String>,
             age: u8,
-        };
+        }
 
         let mut de = Decoder::new(b"d3:agei50ee");
         assert_eq!(
