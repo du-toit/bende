@@ -130,7 +130,7 @@ impl Value {
     ///
     /// let val = Value::List(vec![Value::Int(50), Value::Text(b"foo".to_vec())]);
     /// for elem in val.as_list().unwrap() {
-    ///     println!("{:?}", elem);   
+    ///     println!("{:?}", elem);
     /// }
     /// ```
     pub fn as_list(&self) -> Option<&[Value]> {
@@ -368,19 +368,19 @@ mod test {
 
     #[test]
     fn encode_value_int() {
-        let mut val = Value::Int(1995);
+        let val = Value::Int(1995);
         assert_eq!(encode(&val).unwrap(), b"i1995e");
     }
 
     #[test]
     fn encode_value_text() {
-        let mut val = Value::Text(b"foo".to_vec());
+        let val = Value::Text(b"foo".to_vec());
         assert_eq!(encode(&val).unwrap(), b"3:foo");
     }
 
     #[test]
     fn encode_value_list() {
-        let mut val =
+        let val =
             Value::List(vec![Value::Int(1995), Value::Text(b"foo".to_vec())]);
         assert_eq!(encode(&val).unwrap(), b"li1995e3:fooe");
     }
