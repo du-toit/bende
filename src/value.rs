@@ -69,6 +69,26 @@ impl Value {
             _ => None,
         }
     }
+
+    /// Returns a mutable reference to a slice of bytes if the value is `Text`. Otherwise, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let mut val = Value::Text(b"foo".to_vec());
+    /// if let Some(bytes) = val.as_bytes_mut() {
+    ///     bytes[0] = b'b';
+    ///     assert_eq!(bytes, b"boo");
+    /// }
+    /// ```
+    pub fn as_bytes_mut(&mut self) -> Option<&mut [u8]> {
+        match *self {
+            Value::Text(ref mut v) => Some(v),
+            _ => None,
+        }
+    }
 }
 
 impl Serialize for Value {
