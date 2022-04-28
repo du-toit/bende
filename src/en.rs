@@ -783,7 +783,6 @@ mod test {
     use serde::Serialize;
 
     use super::Encoder;
-    use super::Error;
     use super::KeyEncoder;
 
     #[test]
@@ -853,7 +852,7 @@ mod test {
         struct Person {
             name: Option<String>,
             age: u8,
-        };
+        }
 
         let jerry = Person { name: Some("Jerry".to_owned()), age: 50 };
 
@@ -869,7 +868,7 @@ mod test {
         struct Person {
             name: Option<String>,
             age: u8,
-        };
+        }
 
         let jerry = Person { name: None, age: 50 };
 
@@ -912,10 +911,10 @@ mod test {
     fn encode_key_err() {
         let mut parent = Encoder::new(vec![]);
 
-        let mut en = KeyEncoder::new(&mut parent);
+        let en = KeyEncoder::new(&mut parent);
         assert!((0i32).serialize(en).is_err());
 
-        let mut en = KeyEncoder::new(&mut parent);
+        let en = KeyEncoder::new(&mut parent);
         assert!((true).serialize(en).is_err());
     }
 
@@ -956,7 +955,7 @@ mod test {
             c: i32,
             b: i32,
             a: i32,
-        };
+        }
 
         let foo = Foo { c: 3, b: 2, a: 1 };
 
