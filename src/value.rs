@@ -52,6 +52,23 @@ impl Value {
             _ => None,
         }
     }
+
+    /// Returns a slice of bytes if the value is `Text`. Otherwise `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let val = Value::Text(b"foo".to_vec());
+    /// assert_eq!(val.as_bytes(), Some(b"foo".as_slice()));
+    /// ```
+    pub fn as_bytes(&self) -> Option<&[u8]> {
+        match *self {
+            Value::Text(ref v) => Some(v),
+            _ => None,
+        }
+    }
 }
 
 impl Serialize for Value {
