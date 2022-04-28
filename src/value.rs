@@ -35,6 +35,25 @@ pub enum Value {
     Dict(Dict),
 }
 
+impl Value {
+    /// Returns an `i64` if the value is an `Int`. Otherwise, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let val = Value::Int(50);
+    /// assert_eq!(val.as_i64(), Some(50));
+    /// ```
+    pub fn as_i64(&self) -> Option<i64> {
+        match *self {
+            Value::Int(v) => Some(v),
+            _ => None,
+        }
+    }
+}
+
 impl Serialize for Value {
     fn serialize<S>(&self, ser: S) -> Result<S::Ok, S::Error>
     where
