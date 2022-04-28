@@ -166,6 +166,14 @@ impl Value {
             _ => None,
         }
     }
+
+    /// Returns a mutable reference to a `BTreeMap` if the value is a `Dict`. Otherwise, `None` is returned.
+    pub fn as_dict_mut(&mut self) -> Option<&mut Dict> {
+        match *self {
+            Value::Dict(ref mut v) => Some(v),
+            _ => None,
+        }
+    }
 }
 
 impl Serialize for Value {
