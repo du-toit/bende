@@ -158,6 +158,14 @@ impl Value {
             _ => None,
         }
     }
+
+    /// Returns a `BTreeMap` if the value is a `Dict`. Otherwise, `None` is returned.
+    pub fn as_dict(&self) -> Option<&Dict> {
+        match *self {
+            Value::Dict(ref v) => Some(v),
+            _ => None,
+        }
+    }
 }
 
 impl Serialize for Value {
