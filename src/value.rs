@@ -110,6 +110,16 @@ impl Value {
             _ => Ok(None),
         }
     }
+
+    /// Attempts to get a mutable reference to a `str` from the value.
+    ///
+    /// Returns `None` if the value is not `Text`, or an error if the value is `Text` but the bytes are not valid UTF-8.
+    pub fn as_str_mut(&mut self) -> Result<Option<&mut str>, Utf8Error> {
+        match *self {
+            Value::Text(ref mut v) => str::from_utf8_mut(v).map(Some),
+            _ => Ok(None),
+        }
+    }
 }
 
 impl Serialize for Value {
