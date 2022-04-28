@@ -9,6 +9,8 @@
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::fmt;
+use std::str;
+use std::str::Utf8Error;
 
 use serde::de::Visitor;
 use serde::ser::SerializeMap;
@@ -87,6 +89,25 @@ impl Value {
         match *self {
             Value::Text(ref mut v) => Some(v),
             _ => None,
+        }
+    }
+
+    /// Attempts to get a `str` from the value.
+    ///
+    /// Returns `None` if the value is not `Text`, or an error if the value is `Text` but the bytes are not valid UTF-8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let val = Value::Text(b"foo".to_vec());
+    /// assert_eq!(val.as_str(), Ok(Some("foo")));
+    /// ```
+    pub fn as_str(&self) -> Result<Option<&str>, Utf8Error> {
+        match *self {
+            Value::Text(ref v) => str::from_utf8(v).map(Some),
+            _ => Ok(None),
         }
     }
 }
