@@ -120,6 +120,25 @@ impl Value {
             _ => Ok(None),
         }
     }
+
+    /// Returns a slice of values if the value is a `List`. Otherwise, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let val = Value::List(vec![Value::Int(50), Value::Text(b"foo".to_vec())]);
+    /// for elem in val.as_list().unwrap() {
+    ///     println!("{:?}", elem);   
+    /// }
+    /// ```
+    pub fn as_list(&self) -> Option<&[Value]> {
+        match *self {
+            Value::List(ref v) => Some(v),
+            _ => None,
+        }
+    }
 }
 
 impl Serialize for Value {
