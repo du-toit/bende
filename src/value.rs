@@ -9,6 +9,8 @@
 use std::collections::BTreeMap;
 use std::collections::HashMap;
 use std::fmt;
+use std::str;
+use std::str::Utf8Error;
 
 use serde::de::Visitor;
 use serde::ser::SerializeMap;
@@ -33,6 +35,145 @@ pub enum Value {
     List(List),
     /// A key-value map with keys that are UTF-8 valid strings.
     Dict(Dict),
+}
+
+impl Value {
+    /// Returns an `i64` if the value is an `Int`. Otherwise, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let val = Value::Int(50);
+    /// assert_eq!(val.as_i64(), Some(50));
+    /// ```
+    pub fn as_i64(&self) -> Option<i64> {
+        match *self {
+            Value::Int(v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Returns a slice of bytes if the value is `Text`. Otherwise `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let val = Value::Text(b"foo".to_vec());
+    /// assert_eq!(val.as_bytes(), Some(b"foo".as_slice()));
+    /// ```
+    pub fn as_bytes(&self) -> Option<&[u8]> {
+        match *self {
+            Value::Text(ref v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Returns a mutable reference to a slice of bytes if the value is `Text`. Otherwise, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let mut val = Value::Text(b"foo".to_vec());
+    /// if let Some(bytes) = val.as_bytes_mut() {
+    ///     bytes[0] = b'b';
+    ///     assert_eq!(bytes, b"boo");
+    /// }
+    /// ```
+    pub fn as_bytes_mut(&mut self) -> Option<&mut [u8]> {
+        match *self {
+            Value::Text(ref mut v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Attempts to get a `str` from the value.
+    ///
+    /// Returns `None` if the value is not `Text`, or an error if the value is `Text` but the bytes are not valid UTF-8.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let val = Value::Text(b"foo".to_vec());
+    /// assert_eq!(val.as_str(), Ok(Some("foo")));
+    /// ```
+    pub fn as_str(&self) -> Result<Option<&str>, Utf8Error> {
+        match *self {
+            Value::Text(ref v) => str::from_utf8(v).map(Some),
+            _ => Ok(None),
+        }
+    }
+
+    /// Attempts to get a mutable reference to a `str` from the value.
+    ///
+    /// Returns `None` if the value is not `Text`, or an error if the value is `Text` but the bytes are not valid UTF-8.
+    pub fn as_str_mut(&mut self) -> Result<Option<&mut str>, Utf8Error> {
+        match *self {
+            Value::Text(ref mut v) => str::from_utf8_mut(v).map(Some),
+            _ => Ok(None),
+        }
+    }
+
+    /// Returns a slice of values if the value is a `List`. Otherwise, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let val = Value::List(vec![Value::Int(50), Value::Text(b"foo".to_vec())]);
+    /// for elem in val.as_list().unwrap() {
+    ///     println!("{:?}", elem);   
+    /// }
+    /// ```
+    pub fn as_list(&self) -> Option<&[Value]> {
+        match *self {
+            Value::List(ref v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Returns a mutable reference to a slice of values if the value is a `List`. Otherwise, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let mut val = Value::List(vec![Value::Int(50), Value::Int(50)]);
+    /// for elem in val.as_list_mut().unwrap() {
+    ///     *elem = Value::Text(b"foo".to_vec());
+    /// }
+    /// ```
+    pub fn as_list_mut(&mut self) -> Option<&mut List> {
+        match *self {
+            Value::List(ref mut v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Returns a `BTreeMap` if the value is a `Dict`. Otherwise, `None` is returned.
+    pub fn as_dict(&self) -> Option<&Dict> {
+        match *self {
+            Value::Dict(ref v) => Some(v),
+            _ => None,
+        }
+    }
+
+    /// Returns a mutable reference to a `BTreeMap` if the value is a `Dict`. Otherwise, `None` is returned.
+    pub fn as_dict_mut(&mut self) -> Option<&mut Dict> {
+        match *self {
+            Value::Dict(ref mut v) => Some(v),
+            _ => None,
+        }
+    }
 }
 
 impl Serialize for Value {
