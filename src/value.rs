@@ -139,6 +139,25 @@ impl Value {
             _ => None,
         }
     }
+
+    /// Returns a mutable reference to a slice of values if the value is a `List`. Otherwise, `None` is returned.
+    ///
+    /// # Examples
+    ///
+    /// ```
+    /// use bende::Value;
+    ///
+    /// let mut val = Value::List(vec![Value::Int(50), Value::Int(50)]);
+    /// for elem in val.as_list_mut().unwrap() {
+    ///     *elem = Value::Text(b"foo".to_vec());
+    /// }
+    /// ```
+    pub fn as_list_mut(&mut self) -> Option<&mut List> {
+        match *self {
+            Value::List(ref mut v) => Some(v),
+            _ => None,
+        }
+    }
 }
 
 impl Serialize for Value {
