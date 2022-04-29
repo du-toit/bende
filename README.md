@@ -78,4 +78,4 @@ Don't forget to give the project a star! Thanks again!
 * Keys in a key-value object must be strings, otherwise an error is returned.
 * Map and struct entries are sorted lexicographically by their key **before** they are encoded.
 * If you run into trouble encoding/decoding raw bytes, eg: `&[u8]` or `Vec<u8>` then use [this crate](https://crates.io/crates/serde_bytes).
-* The codebase is small (~1000 lines), easily digestible and filled with comments. If you're a first timer, you'll have a jolly time making your first contribution.
+* The codebase is relatively small (~2000 lines), easily digestible and filled with comments. If you're a first timer, you'll have a jolly time making your first contribution.
