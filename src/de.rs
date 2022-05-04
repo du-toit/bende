@@ -649,6 +649,7 @@ mod test {
     use std::collections::HashMap;
 
     use serde::Deserialize;
+    use serde_bytes::Bytes;
 
     use super::{Decoder, Error};
 
@@ -746,9 +747,7 @@ mod test {
 
     #[test]
     fn decode_bytes_ok() {
-        let mut de = Decoder::new(b"3:foox");
-        assert_eq!(de.decode_bytes(), Ok(b"foo".as_slice()));
-        assert_eq!(de.next(), Some(b'x'));
+        test_decode!(b"3:foo", Ok(Bytes::new(b"foo")));
     }
 
     #[test]
