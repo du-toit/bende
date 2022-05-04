@@ -770,15 +770,15 @@ mod test {
 
     #[test]
     fn decode_bool_err() {
-        let mut de = Decoder::new(b"i2e");
-        assert_eq!(
-            de.decode_bool(),
+        test_decode!(
+            bool,
+            b"i2e",
             Err(Error::Wanted {
                 at: 0,
                 expected: "a boolean",
                 found: "2".to_string()
             })
-        )
+        );
     }
 
     #[test]
