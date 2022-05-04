@@ -680,8 +680,10 @@ mod test {
 
     #[test]
     fn decode_int_signed() {
-        let mut de = Decoder::new(b"i-1995e");
-        assert_eq!(de.decode_int(), Ok(-1995));
+        test_decode!(i8, b"i-127e", Ok(-127));
+        test_decode!(i16, b"i-127e", Ok(-127));
+        test_decode!(i32, b"i-127e", Ok(-127));
+        test_decode!(isize, b"i-127e", Ok(-127));
     }
 
     #[test]
