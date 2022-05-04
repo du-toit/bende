@@ -838,8 +838,7 @@ mod test {
         let mut map = HashMap::new();
         map.insert("foo", "bar");
 
-        let mut de = Decoder::new(b"d3:foo3:bare");
-        assert_eq!(HashMap::deserialize(&mut de), Ok(map))
+        test_decode!(b"d3:foo3:bare", Ok(map));
     }
 
     #[test]
