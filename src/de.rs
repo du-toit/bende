@@ -649,44 +649,67 @@ mod test {
     use std::collections::HashMap;
 
     use serde::Deserialize;
+    use serde_bytes::ByteBuf;
+    use serde_bytes::Bytes;
 
-    use super::{Decoder, Error};
+    use super::Decoder;
+    use super::Error;
+
+    /// Asserts that the result of decoding the encoded bytes is equal to the given value.
+    macro_rules! test_decode {
+        ($enc:expr, $res:expr) => {
+            let mut de = Decoder::new($enc);
+            assert_eq!(Deserialize::deserialize(&mut de), $res);
+        };
+
+        ($t:ident, $enc:expr, $res:expr) => {
+            let mut de = Decoder::new($enc);
+            assert_eq!($t::deserialize(&mut de), $res);
+        };
+    }
 
     #[test]
     fn decode_int_unsigned() {
-        let mut de = Decoder::new(b"i1995e");
-        assert_eq!(de.decode_int(), Ok(1995));
+        test_decode!(u8, b"i255e", Ok(255));
+        test_decode!(u16, b"i255e", Ok(255));
+        test_decode!(u32, b"i255e", Ok(255));
+        test_decode!(usize, b"i255e", Ok(255));
+
+        test_decode!(i8, b"i127e", Ok(127));
+        test_decode!(i16, b"i127e", Ok(127));
+        test_decode!(i32, b"i127e", Ok(127));
+        test_decode!(isize, b"i127e", Ok(127));
     }
 
     #[test]
     fn decode_int_signed() {
-        let mut de = Decoder::new(b"i-1995e");
-        assert_eq!(de.decode_int(), Ok(-1995));
+        test_decode!(i8, b"i-127e", Ok(-127));
+        test_decode!(i16, b"i-127e", Ok(-127));
+        test_decode!(i32, b"i-127e", Ok(-127));
+        test_decode!(isize, b"i-127e", Ok(-127));
     }
 
     #[test]
     fn decode_int_zero() {
-        let mut de = Decoder::new(b"i0e");
-        assert_eq!(de.decode_int(), Ok(0));
+        test_decode!(b"i0e", Ok(0));
     }
 
     #[test]
     fn decode_int_wrong_tag() {
-        let mut de = Decoder::new(b"e1995e");
-        assert_eq!(
-            de.decode_int(),
+        test_decode!(
+            i32,
+            b"e1995e",
             Err(Error::Wanted {
                 at: 0,
                 expected: "an integer",
                 found: "e".to_string()
             })
-        )
+        );
     }
 
     #[test]
     fn decode_int_invalid_digits() {
-        let mut de = Decoder::new(b"i199xe");
-        assert_eq!(de.decode_int(), Err(Error::Malformed))
+        test_decode!(i32, b"i199xe", Err(Error::Malformed));
     }
 
     #[test]
@@ -696,6 +719,12 @@ mod test {
 
         let mut de = Decoder::new(b"s1995e");
         assert_eq!(de.decode_int_unchecked(), Ok(1995))
+    }
+
+    #[test]
+    fn decode_float_err() {
+        test_decode!(f32, b"i1995e", Err(Error::Unsupported("f32")));
+        test_decode!(f64, b"i1995e", Err(Error::Unsupported("f64")));
     }
 
     #[test]
@@ -720,67 +749,36 @@ mod test {
 
     #[test]
     fn decode_bytes_ok() {
-        let mut de = Decoder::new(b"3:foox");
-        assert_eq!(de.decode_bytes(), Ok(b"foo".as_slice()));
-        assert_eq!(de.next(), Some(b'x'));
-    }
-
-    #[test]
-    fn decode_bytes_empty() {
-        let mut de = Decoder::new(b"0:");
-        assert_eq!(de.decode_bytes(), Ok(b"".as_slice()));
+        test_decode!(b"3:foo", Ok(Bytes::new(b"foo")));
     }
 
     #[test]
     fn decode_bytes_err() {
-        let mut de = Decoder::new(b"4:foo");
-        assert_eq!(de.decode_bytes(), Err(Error::EOF))
+        test_decode!(ByteBuf, b"4:foo", Err(Error::EOF));
+    }
+
+    #[test]
+    fn decode_bytes_empty() {
+        test_decode!(b"0:", Ok(Bytes::new(b"")));
     }
 
     #[test]
     fn decode_bool_ok() {
-        let mut de = Decoder::new(b"i0e");
-        assert_eq!(de.decode_bool(), Ok(false));
-
-        let mut de = Decoder::new(b"i1e");
-        assert_eq!(de.decode_bool(), Ok(true));
+        test_decode!(b"i0e", Ok(false));
+        test_decode!(b"i1e", Ok(true));
     }
 
     #[test]
     fn decode_bool_err() {
-        let mut de = Decoder::new(b"i2e");
-        assert_eq!(
-            de.decode_bool(),
+        test_decode!(
+            bool,
+            b"i2e",
             Err(Error::Wanted {
                 at: 0,
                 expected: "a boolean",
                 found: "2".to_string()
             })
-        )
-    }
-
-    #[test]
-    fn deserialize_simple() {
-        #[derive(Debug, PartialEq, Deserialize)]
-        struct Person {
-            name: String,
-            age: u8,
-            is_employed: bool,
-            #[serde(with = "serde_bytes")]
-            signature: Vec<u8>,
-        }
-
-        let jerry = Person {
-            name: "Jerry Smith".to_string(),
-            age: 50,
-            is_employed: false,
-            signature: b"jsmith".to_vec(),
-        };
-
-        let mut de =
-            Decoder::new(b"d4:name11:Jerry Smith3:agei50e11:is_employedi0e9:signature6:jsmithe");
-
-        assert_eq!(Person::deserialize(&mut de), Ok(jerry));
+        );
     }
 
     #[test]
@@ -790,12 +788,10 @@ mod test {
             name: Option<String>,
             age: u8,
         }
-
-        let mut de = Decoder::new(b"d4:name5:Jerry3:agei50ee");
-        assert_eq!(
-            Person::deserialize(&mut de),
+        test_decode!(
+            b"d4:name5:Jerry3:agei50ee",
             Ok(Person { name: Some("Jerry".to_string()), age: 50 })
-        )
+        );
     }
 
     #[test]
@@ -805,31 +801,23 @@ mod test {
             name: Option<String>,
             age: u8,
         }
-
-        let mut de = Decoder::new(b"d3:agei50ee");
-        assert_eq!(
-            Person::deserialize(&mut de),
-            Ok(Person { name: None, age: 50 })
-        )
+        test_decode!(b"d3:agei50ee", Ok(Person { name: None, age: 50 }));
     }
 
     #[test]
     fn deserialize_unit_struct_ok() {
         #[derive(Debug, PartialEq, Deserialize)]
         struct Unit;
-
-        let mut de = Decoder::new(b"4:Unit");
-        assert_eq!(Unit::deserialize(&mut de), Ok(Unit));
+        test_decode!(b"4:Unit", Ok(Unit));
     }
 
     #[test]
     fn deserialize_unit_struct_err() {
         #[derive(Debug, PartialEq, Deserialize)]
         struct Unit;
-
-        let mut de = Decoder::new(b"3:Foo");
-        assert_eq!(
-            Unit::deserialize(&mut de),
+        test_decode!(
+            Unit,
+            b"3:Foo",
             Err(Error::Wanted {
                 at: 0,
                 expected: "Unit",
@@ -842,9 +830,7 @@ mod test {
     fn deserialize_newtype_struct() {
         #[derive(Debug, PartialEq, Deserialize)]
         struct Foo(i32);
-
-        let mut de = Decoder::new(b"i1995e");
-        assert_eq!(Foo::deserialize(&mut de), Ok(Foo(1995)));
+        test_decode!(b"i1995e", Ok(Foo(1995)));
     }
 
     #[test]
@@ -852,16 +838,37 @@ mod test {
         let mut map = HashMap::new();
         map.insert("foo", "bar");
 
-        let mut de = Decoder::new(b"d3:foo3:bare");
-        assert_eq!(HashMap::deserialize(&mut de), Ok(map))
+        test_decode!(b"d3:foo3:bare", Ok(map));
     }
 
     #[test]
     fn deserialize_map_err() {
-        let mut de = Decoder::new(b"di1995e3:fooe");
-        assert_eq!(
-            HashMap::<i32, &str>::deserialize(&mut de),
-            Err(Error::Malformed)
-        )
+        // Rework to supply the macro with an explicit type.
+        type BadMap = HashMap<i32, String>;
+
+        test_decode!(BadMap, b"di1995e3:fooe", Err(Error::Malformed));
+    }
+
+    #[test]
+    fn deserialize_simple_struct() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct Person {
+            name: String,
+            age: u8,
+            is_employed: bool,
+            #[serde(with = "serde_bytes")]
+            signature: Vec<u8>,
+        }
+        test_decode!(
+            b"d4:name11:Jerry Smith3:agei50e11:is_employedi0e9:signature6:jsmithe",
+            Ok(
+                Person {
+                    name: "Jerry Smith".to_string(),
+                    age: 50,
+                    is_employed: false,
+                    signature: b"jsmith".to_vec(),
+                }
+            )
+        );
     }
 }

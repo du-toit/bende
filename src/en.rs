@@ -781,69 +781,71 @@ mod test {
     use std::collections::HashMap;
 
     use serde::Serialize;
+    use serde_bytes::Bytes;
 
     use super::Encoder;
     use super::KeyEncoder;
 
+    /// Asserts that the result of encoding the value is equal to the given bencoded bytes.
+    macro_rules! test_encode {
+        ($val:expr, $res:expr) => {
+            let mut en = Encoder::new(vec![]);
+            $val.serialize(&mut en).unwrap();
+            assert_eq!(en.buf, $res);
+        };
+    }
+
     #[test]
     fn encode_int_unsigned() {
-        let mut en = Encoder::new(vec![]);
-        assert!(en.encode_int(1995).is_ok());
-        assert_eq!(en.buf, b"i1995e".to_vec());
+        test_encode!(255u8, b"i255e");
+        test_encode!(255u16, b"i255e");
+        test_encode!(255u32, b"i255e");
+        test_encode!(255u64, b"i255e");
+
+        test_encode!(127i8, b"i127e");
+        test_encode!(127i16, b"i127e");
+        test_encode!(127i32, b"i127e");
+        test_encode!(127i64, b"i127e");
     }
 
     #[test]
     fn encode_int_signed() {
-        let mut en = Encoder::new(vec![]);
-        assert!(en.encode_int(-1995).is_ok());
-        assert_eq!(en.buf, b"i-1995e".to_vec());
+        test_encode!(-127i8, b"i-127e");
+        test_encode!(-127i16, b"i-127e");
+        test_encode!(-127i32, b"i-127e");
+        test_encode!(-127i64, b"i-127e");
     }
 
     #[test]
     fn encode_int_zero() {
-        let mut en = Encoder::new(vec![]);
-        assert!(en.encode_int(0).is_ok());
-        assert_eq!(en.buf, b"i0e".to_vec());
+        test_encode!(0, b"i0e");
+    }
+
+    #[test]
+    #[should_panic]
+    fn encode_float_err() {
+        test_encode!(0.0, b"");
     }
 
     #[test]
     fn encode_bytes() {
-        let mut en = Encoder::new(vec![]);
-        assert!(en.encode_bytes(b"hello").is_ok());
-        assert_eq!(en.buf, b"5:hello".to_vec());
+        test_encode!(Bytes::new(b"hello"), b"5:hello");
     }
 
     #[test]
     fn encode_bytes_empty() {
-        let mut en = Encoder::new(vec![]);
-        assert!(en.encode_bytes(b"").is_ok());
-        assert_eq!(en.buf, b"0:".to_vec());
+        test_encode!(Bytes::new(b""), b"0:");
     }
 
     #[test]
-    fn serialize_simple() {
-        #[derive(Debug, PartialEq, Serialize)]
-        struct Person {
-            name: String,
-            age: u8,
-            is_employed: bool,
-            #[serde(with = "serde_bytes")]
-            signature: Vec<u8>,
-        }
+    fn encode_str() {
+        test_encode!("hello", b"5:hello");
+    }
 
-        let jerry = Person {
-            name: "Jerry Smith".to_string(),
-            age: 50,
-            is_employed: false,
-            signature: b"jsmith".to_vec(),
-        };
-
-        let mut en = Encoder::new(vec![]);
-        assert!(jerry.serialize(&mut en).is_ok());
-        assert_eq!(
-            en.buf,
-            b"d3:agei50e11:is_employedi0e4:name11:Jerry Smith9:signature6:jsmithe".to_vec()
-        );
+    #[test]
+    fn encode_bool() {
+        test_encode!(false, b"i0e");
+        test_encode!(true, b"i1e");
     }
 
     #[test]
@@ -853,12 +855,10 @@ mod test {
             name: Option<String>,
             age: u8,
         }
-
-        let jerry = Person { name: Some("Jerry".to_owned()), age: 50 };
-
-        let mut en = Encoder::new(vec![]);
-        assert!(jerry.serialize(&mut en).is_ok());
-        assert_eq!(en.buf, b"d3:agei50e4:name5:Jerrye".to_vec());
+        test_encode!(
+            Person { name: Some("Jerry".to_owned()), age: 50 },
+            b"d3:agei50e4:name5:Jerrye"
+        );
     }
 
     #[test]
@@ -869,31 +869,21 @@ mod test {
             name: Option<String>,
             age: u8,
         }
-
-        let jerry = Person { name: None, age: 50 };
-
-        let mut en = Encoder::new(vec![]);
-        jerry.serialize(&mut en).unwrap();
+        test_encode!(Person { name: None, age: 50 }, b"");
     }
 
     #[test]
     fn serialize_unit_struct() {
         #[derive(Debug, Serialize)]
         struct Unit;
-
-        let mut en = Encoder::new(vec![]);
-        Unit.serialize(&mut en).unwrap();
-        assert_eq!(en.buf, b"4:Unit".to_vec());
+        test_encode!(Unit, b"4:Unit");
     }
 
     #[test]
     fn serialize_newtype_struct() {
         #[derive(Debug, Serialize)]
         struct Foo(i32);
-
-        let mut en = Encoder::new(vec![]);
-        Foo(1995).serialize(&mut en).unwrap();
-        assert_eq!(en.buf, b"i1995e".to_vec());
+        test_encode!(Foo(1995), b"i1995e");
     }
 
     #[test]
@@ -923,17 +913,16 @@ mod test {
         let mut map = HashMap::new();
         map.insert("foo", "bar");
 
-        let mut en = Encoder::new(vec![]);
-        assert!(map.serialize(&mut en).is_ok());
+        test_encode!(map, b"d3:foo3:bare");
     }
 
     #[test]
+    #[should_panic]
     fn serialize_map_err() {
         let mut map = HashMap::new();
         map.insert(0, "bar");
 
-        let mut en = Encoder::new(vec![]);
-        assert!(map.serialize(&mut en).is_err());
+        test_encode!(map, b"");
     }
 
     #[test]
@@ -942,10 +931,28 @@ mod test {
         map.insert("foo", "bar");
         map.insert("baz", "faz");
 
-        let mut en = Encoder::new(vec![]);
-        map.serialize(&mut en).unwrap();
+        test_encode!(map, b"d3:baz3:faz3:foo3:bare");
+    }
 
-        assert_eq!(en.buf, b"d3:baz3:faz3:foo3:bare");
+    #[test]
+    fn serialize_simple_struct() {
+        #[derive(Debug, PartialEq, Serialize)]
+        struct Person {
+            name: String,
+            age: u8,
+            is_employed: bool,
+            #[serde(with = "serde_bytes")]
+            signature: Vec<u8>,
+        }
+        test_encode!(
+            Person {
+                name: "Jerry Smith".to_string(),
+                age: 50,
+                is_employed: false,
+                signature: b"jsmith".to_vec(),
+            },
+            b"d3:agei50e11:is_employedi0e4:name11:Jerry Smith9:signature6:jsmithe"
+        );
     }
 
     #[test]
@@ -956,12 +963,6 @@ mod test {
             b: i32,
             a: i32,
         }
-
-        let foo = Foo { c: 3, b: 2, a: 1 };
-
-        let mut en = Encoder::new(vec![]);
-        foo.serialize(&mut en).unwrap();
-
-        assert_eq!(en.buf, b"d1:ai1e1:bi2e1:ci3ee")
+        test_encode!(Foo { c: 3, b: 2, a: 1 }, b"d1:ai1e1:bi2e1:ci3ee");
     }
 }

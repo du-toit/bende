@@ -113,6 +113,14 @@ mod test {
     use super::decode;
     use super::encode;
 
+    /// Asserts that passing the encoded value's bytes to the decoder will yield the same value.
+    macro_rules! test_bende {
+        ($t:ident, $val:expr) => {
+            let bytes = encode(&$val).unwrap();
+            assert_eq!(decode::<$t>(&bytes), Ok($val));
+        };
+    }
+
     #[test]
     fn encode_and_decode_simple() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
@@ -121,19 +129,18 @@ mod test {
             age: u8,
             is_employed: bool,
         }
-
-        let jerry = Person {
-            name: "Jerry Smith".to_string(),
-            age: 50,
-            is_employed: false,
-        };
-
-        let bytes = encode(&jerry).unwrap();
-        assert_eq!(decode::<Person>(&bytes).unwrap(), jerry);
+        test_bende!(
+            Person,
+            Person {
+                name: "Jerry Smith".to_string(),
+                age: 50,
+                is_employed: false,
+            }
+        );
     }
 
     #[test]
-    fn encode_and_decode_nested() {
+    fn encode_and_decode_nested_struct() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
         struct Armory {
             weapons: Vec<Weapon>,
@@ -151,21 +158,21 @@ mod test {
             damage: u8,
         }
 
-        let armory = Armory {
-            weapons: vec![
-                Weapon {
-                    name: "Sword".to_string(),
-                    stats: Stats { health: 64, damage: 27 },
-                },
-                Weapon {
-                    name: "Shield".to_string(),
-                    stats: Stats { health: 102, damage: 0 },
-                },
-            ],
-        };
-
-        let bytes = encode(&armory).unwrap();
-        assert_eq!(decode::<Armory>(&bytes).unwrap(), armory);
+        test_bende!(
+            Armory,
+            Armory {
+                weapons: vec![
+                    Weapon {
+                        name: "Sword".to_string(),
+                        stats: Stats { health: 64, damage: 27 },
+                    },
+                    Weapon {
+                        name: "Shield".to_string(),
+                        stats: Stats { health: 102, damage: 0 },
+                    },
+                ],
+            }
+        );
     }
 
     #[test]
@@ -176,34 +183,27 @@ mod test {
             age: Option<u8>,
             is_employed: Option<bool>,
         }
-
-        let jerry = Person {
-            name: Some("Jerry Smith".to_string()),
-            age: Some(50),
-            is_employed: Some(false),
-        };
-
-        let bytes = encode(&jerry).unwrap();
-        assert_eq!(decode::<Person>(&bytes).unwrap(), jerry);
+        test_bende!(
+            Person,
+            Person {
+                name: Some("Jerry Smith".to_string()),
+                age: Some(50),
+                is_employed: Some(false),
+            }
+        );
     }
 
     #[test]
     fn encode_and_decode_unit_struct() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
         struct Foo;
-
-        let bytes = encode(&Foo).unwrap();
-        assert_eq!(decode::<Foo>(&bytes).unwrap(), Foo);
+        test_bende!(Foo, Foo);
     }
 
     #[test]
     fn encode_and_decode_newtype_struct() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
         struct Foo(i32);
-
-        let foo = Foo(1995);
-
-        let bytes = encode(&foo).unwrap();
-        assert_eq!(decode::<Foo>(&bytes), Ok(foo));
+        test_bende!(Foo, Foo(1995));
     }
 }
