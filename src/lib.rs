@@ -113,6 +113,14 @@ mod test {
     use super::decode;
     use super::encode;
 
+    /// Asserts that passing the encoded value's bytes to the decoder will yield the same value.
+    macro_rules! test_bende {
+        ($t:ident, $val:expr) => {
+            let bytes = encode(&$val).unwrap();
+            assert_eq!(decode::<$t>(&bytes), Ok($val));
+        };
+    }
+
     #[test]
     fn encode_and_decode_simple() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
