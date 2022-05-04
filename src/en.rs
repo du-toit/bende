@@ -849,12 +849,10 @@ mod test {
             name: Option<String>,
             age: u8,
         }
-
-        let jerry = Person { name: Some("Jerry".to_owned()), age: 50 };
-
-        let mut en = Encoder::new(vec![]);
-        assert!(jerry.serialize(&mut en).is_ok());
-        assert_eq!(en.buf, b"d3:agei50e4:name5:Jerrye".to_vec());
+        test_encode!(
+            Person { name: Some("Jerry".to_owned()), age: 50 },
+            b"d3:agei50e4:name5:Jerrye"
+        );
     }
 
     #[test]
