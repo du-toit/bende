@@ -809,9 +809,10 @@ mod test {
 
     #[test]
     fn encode_int_signed() {
-        let mut en = Encoder::new(vec![]);
-        assert!(en.encode_int(-1995).is_ok());
-        assert_eq!(en.buf, b"i-1995e".to_vec());
+        test_encode!(-127i8, b"i-127e");
+        test_encode!(-127i16, b"i-127e");
+        test_encode!(-127i32, b"i-127e");
+        test_encode!(-127i64, b"i-127e");
     }
 
     #[test]
