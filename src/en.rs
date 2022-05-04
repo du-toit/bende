@@ -913,8 +913,7 @@ mod test {
         let mut map = HashMap::new();
         map.insert("foo", "bar");
 
-        let mut en = Encoder::new(vec![]);
-        assert!(map.serialize(&mut en).is_ok());
+        test_encode!(map, b"d3:foo3:bare");
     }
 
     #[test]
