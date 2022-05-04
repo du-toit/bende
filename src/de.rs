@@ -667,8 +667,15 @@ mod test {
 
     #[test]
     fn decode_int_unsigned() {
-        let mut de = Decoder::new(b"i1995e");
-        assert_eq!(de.decode_int(), Ok(1995));
+        test_decode!(u8, b"i255e", Ok(255));
+        test_decode!(u16, b"i255e", Ok(255));
+        test_decode!(u32, b"i255e", Ok(255));
+        test_decode!(usize, b"i255e", Ok(255));
+
+        test_decode!(i8, b"i127e", Ok(127));
+        test_decode!(i16, b"i127e", Ok(127));
+        test_decode!(i32, b"i127e", Ok(127));
+        test_decode!(isize, b"i127e", Ok(127));
     }
 
     #[test]
