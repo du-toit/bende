@@ -649,9 +649,11 @@ mod test {
     use std::collections::HashMap;
 
     use serde::Deserialize;
+    use serde_bytes::ByteBuf;
     use serde_bytes::Bytes;
 
-    use super::{Decoder, Error};
+    use super::Decoder;
+    use super::Error;
 
     /// Asserts that the result of decoding the encoded bytes is equal to the given value.
     macro_rules! test_decode {
@@ -751,14 +753,13 @@ mod test {
     }
 
     #[test]
-    fn decode_bytes_empty() {
-        test_decode!(b"0:", Ok(Bytes::new(b"")));
+    fn decode_bytes_err() {
+        test_decode!(ByteBuf, b"4:foo", Err(Error::EOF));
     }
 
     #[test]
-    fn decode_bytes_err() {
-        let mut de = Decoder::new(b"4:foo");
-        assert_eq!(de.decode_bytes(), Err(Error::EOF))
+    fn decode_bytes_empty() {
+        test_decode!(b"0:", Ok(Bytes::new(b"")));
     }
 
     #[test]
