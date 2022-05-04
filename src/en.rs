@@ -917,12 +917,12 @@ mod test {
     }
 
     #[test]
+    #[should_panic]
     fn serialize_map_err() {
         let mut map = HashMap::new();
         map.insert(0, "bar");
 
-        let mut en = Encoder::new(vec![]);
-        assert!(map.serialize(&mut en).is_err());
+        test_encode!(map, b"");
     }
 
     #[test]
