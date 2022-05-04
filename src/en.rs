@@ -834,9 +834,7 @@ mod test {
 
     #[test]
     fn encode_bytes_empty() {
-        let mut en = Encoder::new(vec![]);
-        assert!(en.encode_bytes(b"").is_ok());
-        assert_eq!(en.buf, b"0:".to_vec());
+        test_encode!(Bytes::new(b""), b"0:");
     }
 
     #[test]
