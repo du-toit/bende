@@ -828,6 +828,11 @@ mod test {
     }
 
     #[test]
+    fn encode_char() {
+        test_encode!('a', b"1:a");
+    }
+
+    #[test]
     fn encode_bytes() {
         test_encode!(Bytes::new(b"hello"), b"5:hello");
     }
