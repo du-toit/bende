@@ -764,11 +764,8 @@ mod test {
 
     #[test]
     fn decode_bool_ok() {
-        let mut de = Decoder::new(b"i0e");
-        assert_eq!(de.decode_bool(), Ok(false));
-
-        let mut de = Decoder::new(b"i1e");
-        assert_eq!(de.decode_bool(), Ok(true));
+        test_decode!(b"i0e", Ok(false));
+        test_decode!(b"i1e", Ok(true));
     }
 
     #[test]
