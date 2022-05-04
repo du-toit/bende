@@ -843,32 +843,6 @@ mod test {
     }
 
     #[test]
-    fn serialize_simple() {
-        #[derive(Debug, PartialEq, Serialize)]
-        struct Person {
-            name: String,
-            age: u8,
-            is_employed: bool,
-            #[serde(with = "serde_bytes")]
-            signature: Vec<u8>,
-        }
-
-        let jerry = Person {
-            name: "Jerry Smith".to_string(),
-            age: 50,
-            is_employed: false,
-            signature: b"jsmith".to_vec(),
-        };
-
-        let mut en = Encoder::new(vec![]);
-        assert!(jerry.serialize(&mut en).is_ok());
-        assert_eq!(
-            en.buf,
-            b"d3:agei50e11:is_employedi0e4:name11:Jerry Smith9:signature6:jsmithe".to_vec()
-        );
-    }
-
-    #[test]
     fn serialize_some() {
         #[derive(Debug, PartialEq, Serialize)]
         struct Person {
@@ -968,6 +942,32 @@ mod test {
         map.serialize(&mut en).unwrap();
 
         assert_eq!(en.buf, b"d3:baz3:faz3:foo3:bare");
+    }
+
+    #[test]
+    fn serialize_simple_struct() {
+        #[derive(Debug, PartialEq, Serialize)]
+        struct Person {
+            name: String,
+            age: u8,
+            is_employed: bool,
+            #[serde(with = "serde_bytes")]
+            signature: Vec<u8>,
+        }
+
+        let jerry = Person {
+            name: "Jerry Smith".to_string(),
+            age: 50,
+            is_employed: false,
+            signature: b"jsmith".to_vec(),
+        };
+
+        let mut en = Encoder::new(vec![]);
+        assert!(jerry.serialize(&mut en).is_ok());
+        assert_eq!(
+            en.buf,
+            b"d3:agei50e11:is_employedi0e4:name11:Jerry Smith9:signature6:jsmithe".to_vec()
+        );
     }
 
     #[test]
