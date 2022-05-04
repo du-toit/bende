@@ -746,6 +746,19 @@ mod test {
     }
 
     #[test]
+    fn decode_char_err() {
+        test_decode!(
+            char,
+            b"3:foo",
+            Err(Error::Wanted {
+                at: 0,
+                expected: "a character",
+                found: "foo".to_string()
+            })
+        );
+    }
+
+    #[test]
     fn decode_len_ok() {
         let mut de = Decoder::new(b"13:x");
         assert_eq!(de.decode_len(), Ok(13));
