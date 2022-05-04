@@ -795,6 +795,16 @@ mod test {
     }
 
     #[test]
+    fn deserialize_none() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct Person {
+            name: Option<String>,
+            age: u8,
+        }
+        test_decode!(b"d3:agei50ee", Ok(Person { name: None, age: 50 }));
+    }
+
+    #[test]
     fn deserialize_simple_struct() {
         #[derive(Debug, PartialEq, Deserialize)]
         struct Person {
@@ -815,21 +825,6 @@ mod test {
                 }
             )
         );
-    }
-
-    #[test]
-    fn deserialize_none() {
-        #[derive(Debug, PartialEq, Deserialize)]
-        struct Person {
-            name: Option<String>,
-            age: u8,
-        }
-
-        let mut de = Decoder::new(b"d3:agei50ee");
-        assert_eq!(
-            Person::deserialize(&mut de),
-            Ok(Person { name: None, age: 50 })
-        )
     }
 
     #[test]
