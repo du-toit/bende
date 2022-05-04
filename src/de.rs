@@ -843,11 +843,10 @@ mod test {
 
     #[test]
     fn deserialize_map_err() {
-        let mut de = Decoder::new(b"di1995e3:fooe");
-        assert_eq!(
-            HashMap::<i32, &str>::deserialize(&mut de),
-            Err(Error::Malformed)
-        )
+        // Rework to supply the macro with an explicit type.
+        type BadMap = HashMap<i32, String>;
+
+        test_decode!(BadMap, b"di1995e3:fooe", Err(Error::Malformed));
     }
 
     #[test]
