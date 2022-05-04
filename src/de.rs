@@ -688,8 +688,7 @@ mod test {
 
     #[test]
     fn decode_int_zero() {
-        let mut de = Decoder::new(b"i0e");
-        assert_eq!(de.decode_int(), Ok(0));
+        test_decode!(b"i0e", Ok(0));
     }
 
     #[test]
