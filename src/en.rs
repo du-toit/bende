@@ -796,9 +796,15 @@ mod test {
 
     #[test]
     fn encode_int_unsigned() {
-        let mut en = Encoder::new(vec![]);
-        assert!(en.encode_int(1995).is_ok());
-        assert_eq!(en.buf, b"i1995e".to_vec());
+        test_encode!(255u8, b"i255e");
+        test_encode!(255u16, b"i255e");
+        test_encode!(255u32, b"i255e");
+        test_encode!(255u64, b"i255e");
+
+        test_encode!(127i8, b"i127e");
+        test_encode!(127i16, b"i127e");
+        test_encode!(127i32, b"i127e");
+        test_encode!(127i64, b"i127e");
     }
 
     #[test]
