@@ -140,7 +140,7 @@ mod test {
     }
 
     #[test]
-    fn encode_and_decode_nested() {
+    fn encode_and_decode_nested_struct() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
         struct Armory {
             weapons: Vec<Weapon>,
@@ -158,21 +158,21 @@ mod test {
             damage: u8,
         }
 
-        let armory = Armory {
-            weapons: vec![
-                Weapon {
-                    name: "Sword".to_string(),
-                    stats: Stats { health: 64, damage: 27 },
-                },
-                Weapon {
-                    name: "Shield".to_string(),
-                    stats: Stats { health: 102, damage: 0 },
-                },
-            ],
-        };
-
-        let bytes = encode(&armory).unwrap();
-        assert_eq!(decode::<Armory>(&bytes).unwrap(), armory);
+        test_bende!(
+            Armory,
+            Armory {
+                weapons: vec![
+                    Weapon {
+                        name: "Sword".to_string(),
+                        stats: Stats { health: 64, damage: 27 },
+                    },
+                    Weapon {
+                        name: "Shield".to_string(),
+                        stats: Stats { health: 102, damage: 0 },
+                    },
+                ],
+            }
+        );
     }
 
     #[test]
