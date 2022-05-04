@@ -652,6 +652,19 @@ mod test {
 
     use super::{Decoder, Error};
 
+    /// Asserts that the result of decoding the encoded bytes is equal to the given value.
+    macro_rules! test_decode {
+        ($enc:expr, $res:expr) => {
+            let mut de = Decoder::new($enc);
+            assert_eq!(Deserialize::deserialize(&mut de), $res);
+        };
+
+        ($t:ident, $enc:expr, $res:expr) => {
+            let mut de = Decoder::new($enc);
+            assert_eq!($t::deserialize(&mut de), $res);
+        };
+    }
+
     #[test]
     fn decode_int_unsigned() {
         let mut de = Decoder::new(b"i1995e");
