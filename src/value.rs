@@ -37,6 +37,53 @@ pub enum Value {
     Dict(Dict),
 }
 
+impl fmt::Display for Value {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            Value::Int(int) => write!(f, "{}", int),
+            Value::Text(ref bytes) => {
+                let v = String::from_utf8_lossy(bytes);
+                write!(f, "\"{}\"", &v)
+            }
+            Value::List(ref list) => {
+                f.write_str("[")?;
+
+                let mut first = true;
+                for elem in list {
+                    if !first {
+                        write!(f, ", ")?;
+                    }
+
+                    write!(f, "{}", elem)?;
+                    first = false;
+                }
+
+                f.write_str("]")
+            }
+            Value::Dict(ref dict) => {
+                f.write_str("{")?;
+
+                let mut first = true;
+                for (key, val) in dict {
+                    if first {
+                        first = false;
+                        f.write_str(" ")?;
+                    } else {
+                        f.write_str(", ")?;
+                    }
+                    write!(f, "{}: {}", key, val)?;
+                }
+
+                if !first {
+                    f.write_str(" ")?;
+                }
+
+                f.write_str("}")
+            }
+        }
+    }
+}
+
 impl Value {
     /// Returns an `i64` if the value is an `Int`. Otherwise, `None` is returned.
     ///
