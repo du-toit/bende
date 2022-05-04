@@ -693,15 +693,15 @@ mod test {
 
     #[test]
     fn decode_int_wrong_tag() {
-        let mut de = Decoder::new(b"e1995e");
-        assert_eq!(
-            de.decode_int(),
+        test_decode!(
+            i32,
+            b"e1995e",
             Err(Error::Wanted {
                 at: 0,
                 expected: "an integer",
                 found: "e".to_string()
             })
-        )
+        );
     }
 
     #[test]
