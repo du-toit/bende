@@ -204,10 +204,6 @@ mod test {
     fn encode_and_decode_newtype_struct() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
         struct Foo(i32);
-
-        let foo = Foo(1995);
-
-        let bytes = encode(&foo).unwrap();
-        assert_eq!(decode::<Foo>(&bytes), Ok(foo));
+        test_bende!(Foo, Foo(1995));
     }
 }
