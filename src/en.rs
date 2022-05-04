@@ -821,6 +821,12 @@ mod test {
     }
 
     #[test]
+    #[should_panic]
+    fn encode_float_err() {
+        test_encode!(0.0, b"");
+    }
+
+    #[test]
     fn encode_bytes() {
         let mut en = Encoder::new(vec![]);
         assert!(en.encode_bytes(b"hello").is_ok());
