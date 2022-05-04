@@ -805,29 +805,6 @@ mod test {
     }
 
     #[test]
-    fn deserialize_simple_struct() {
-        #[derive(Debug, PartialEq, Deserialize)]
-        struct Person {
-            name: String,
-            age: u8,
-            is_employed: bool,
-            #[serde(with = "serde_bytes")]
-            signature: Vec<u8>,
-        }
-        test_decode!(
-            b"d4:name11:Jerry Smith3:agei50e11:is_employedi0e9:signature6:jsmithe",
-            Ok(
-                Person {
-                    name: "Jerry Smith".to_string(),
-                    age: 50,
-                    is_employed: false,
-                    signature: b"jsmith".to_vec(),
-                }
-            )
-        );
-    }
-
-    #[test]
     fn deserialize_unit_struct_ok() {
         #[derive(Debug, PartialEq, Deserialize)]
         struct Unit;
@@ -877,5 +854,28 @@ mod test {
             HashMap::<i32, &str>::deserialize(&mut de),
             Err(Error::Malformed)
         )
+    }
+
+    #[test]
+    fn deserialize_simple_struct() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        struct Person {
+            name: String,
+            age: u8,
+            is_employed: bool,
+            #[serde(with = "serde_bytes")]
+            signature: Vec<u8>,
+        }
+        test_decode!(
+            b"d4:name11:Jerry Smith3:agei50e11:is_employedi0e9:signature6:jsmithe",
+            Ok(
+                Person {
+                    name: "Jerry Smith".to_string(),
+                    age: 50,
+                    is_employed: false,
+                    signature: b"jsmith".to_vec(),
+                }
+            )
+        );
     }
 }
