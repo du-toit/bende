@@ -843,7 +843,7 @@ mod test {
 
     #[test]
     fn deserialize_map_err() {
-        // Rework to supply the macro with an explicit type.
+        // Workaround to supply the macro with an explicit type.
         type BadMap = HashMap<i32, String>;
 
         test_decode!(BadMap, b"di1995e3:fooe", Err(Error::Malformed));
