@@ -781,6 +781,7 @@ mod test {
     use std::collections::HashMap;
 
     use serde::Serialize;
+    use serde_bytes::Bytes;
 
     use super::Encoder;
     use super::KeyEncoder;
@@ -828,9 +829,7 @@ mod test {
 
     #[test]
     fn encode_bytes() {
-        let mut en = Encoder::new(vec![]);
-        assert!(en.encode_bytes(b"hello").is_ok());
-        assert_eq!(en.buf, b"5:hello".to_vec());
+        test_encode!(Bytes::new(b"hello"), b"5:hello");
     }
 
     #[test]
