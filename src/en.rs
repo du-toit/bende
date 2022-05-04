@@ -220,8 +220,8 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
         Err(Error::Unsupported("f64"))
     }
 
-    fn serialize_char(self, _: char) -> Result<Self::Ok, Self::Error> {
-        Err(Error::Unsupported("char"))
+    fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
+        self.serialize_str(&v.to_string())
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
@@ -825,6 +825,11 @@ mod test {
     #[should_panic]
     fn encode_float_err() {
         test_encode!(0.0, b"");
+    }
+
+    #[test]
+    fn encode_char() {
+        test_encode!('a', b"1:a");
     }
 
     #[test]

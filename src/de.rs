@@ -389,11 +389,24 @@ impl<'a, 'de> Deserializer<'de> for &'a mut Decoder<'de> {
         Err(Error::Unsupported("f64"))
     }
 
-    fn deserialize_char<V>(self, _: V) -> Result<V::Value, Self::Error>
+    fn deserialize_char<V>(self, visitor: V) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        Err(Error::Unsupported("char"))
+        // Get our current position before we decode anything.
+        let at = self.pos();
+
+        let s: &str = str::from_utf8(&self.decode_bytes()?)?;
+        let count = s.chars().count();
+
+        match count {
+            1 => visitor.visit_char(s.chars().next().unwrap()),
+            _ => Err(Error::Wanted {
+                at,
+                expected: "a character",
+                found: s.to_owned(),
+            }),
+        }
     }
 
     fn deserialize_str<V>(self, visitor: V) -> Result<V::Value, Self::Error>
@@ -725,6 +738,24 @@ mod test {
     fn decode_float_err() {
         test_decode!(f32, b"i1995e", Err(Error::Unsupported("f32")));
         test_decode!(f64, b"i1995e", Err(Error::Unsupported("f64")));
+    }
+
+    #[test]
+    fn decode_char_ok() {
+        test_decode!(b"1:a", Ok('a'));
+    }
+
+    #[test]
+    fn decode_char_err() {
+        test_decode!(
+            char,
+            b"3:foo",
+            Err(Error::Wanted {
+                at: 0,
+                expected: "a character",
+                found: "foo".to_string()
+            })
+        );
     }
 
     #[test]
