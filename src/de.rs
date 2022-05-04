@@ -720,6 +720,12 @@ mod test {
     }
 
     #[test]
+    fn decode_float_err() {
+        test_decode!(f32, b"i1995e", Err(Error::Unsupported("f32")));
+        test_decode!(f64, b"i1995e", Err(Error::Unsupported("f64")));
+    }
+
+    #[test]
     fn decode_len_ok() {
         let mut de = Decoder::new(b"13:x");
         assert_eq!(de.decode_len(), Ok(13));
