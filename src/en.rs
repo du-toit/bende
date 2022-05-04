@@ -785,6 +785,15 @@ mod test {
     use super::Encoder;
     use super::KeyEncoder;
 
+    /// Asserts that the result of encoding the value is equal to the given bencoded bytes.
+    macro_rules! test_encode {
+        ($val:expr, $res:expr) => {
+            let mut en = Encoder::new(vec![]);
+            $val.serialize(&mut en).unwrap();
+            assert_eq!(en.buf, $res);
+        };
+    }
+
     #[test]
     fn encode_int_unsigned() {
         let mut en = Encoder::new(vec![]);
