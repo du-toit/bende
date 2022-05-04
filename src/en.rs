@@ -944,19 +944,14 @@ mod test {
             #[serde(with = "serde_bytes")]
             signature: Vec<u8>,
         }
-
-        let jerry = Person {
-            name: "Jerry Smith".to_string(),
-            age: 50,
-            is_employed: false,
-            signature: b"jsmith".to_vec(),
-        };
-
-        let mut en = Encoder::new(vec![]);
-        assert!(jerry.serialize(&mut en).is_ok());
-        assert_eq!(
-            en.buf,
-            b"d3:agei50e11:is_employedi0e4:name11:Jerry Smith9:signature6:jsmithe".to_vec()
+        test_encode!(
+            Person {
+                name: "Jerry Smith".to_string(),
+                age: 50,
+                is_employed: false,
+                signature: b"jsmith".to_vec(),
+            },
+            b"d3:agei50e11:is_employedi0e4:name11:Jerry Smith9:signature6:jsmithe"
         );
     }
 
