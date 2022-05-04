@@ -817,9 +817,7 @@ mod test {
 
     #[test]
     fn encode_int_zero() {
-        let mut en = Encoder::new(vec![]);
-        assert!(en.encode_int(0).is_ok());
-        assert_eq!(en.buf, b"i0e".to_vec());
+        test_encode!(0, b"i0e");
     }
 
     #[test]
