@@ -838,6 +838,11 @@ mod test {
     }
 
     #[test]
+    fn encode_str() {
+        test_encode!("hello", b"5:hello");
+    }
+
+    #[test]
     fn serialize_simple() {
         #[derive(Debug, PartialEq, Serialize)]
         struct Person {
