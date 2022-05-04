@@ -815,10 +815,9 @@ mod test {
     fn deserialize_unit_struct_err() {
         #[derive(Debug, PartialEq, Deserialize)]
         struct Unit;
-
-        let mut de = Decoder::new(b"3:Foo");
-        assert_eq!(
-            Unit::deserialize(&mut de),
+        test_decode!(
+            Unit,
+            b"3:Foo",
             Err(Error::Wanted {
                 at: 0,
                 expected: "Unit",
