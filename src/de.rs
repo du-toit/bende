@@ -830,9 +830,7 @@ mod test {
     fn deserialize_newtype_struct() {
         #[derive(Debug, PartialEq, Deserialize)]
         struct Foo(i32);
-
-        let mut de = Decoder::new(b"i1995e");
-        assert_eq!(Foo::deserialize(&mut de), Ok(Foo(1995)));
+        test_decode!(b"i1995e", Ok(Foo(1995)));
     }
 
     #[test]
