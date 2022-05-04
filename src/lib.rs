@@ -129,15 +129,14 @@ mod test {
             age: u8,
             is_employed: bool,
         }
-
-        let jerry = Person {
-            name: "Jerry Smith".to_string(),
-            age: 50,
-            is_employed: false,
-        };
-
-        let bytes = encode(&jerry).unwrap();
-        assert_eq!(decode::<Person>(&bytes).unwrap(), jerry);
+        test_bende!(
+            Person,
+            Person {
+                name: "Jerry Smith".to_string(),
+                age: 50,
+                is_employed: false,
+            }
+        );
     }
 
     #[test]
