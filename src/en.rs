@@ -800,12 +800,12 @@ mod test {
         test_encode!(255u8, b"i255e");
         test_encode!(255u16, b"i255e");
         test_encode!(255u32, b"i255e");
-        test_encode!(255u64, b"i255e");
+        test_encode!(255usize, b"i255e");
 
         test_encode!(127i8, b"i127e");
         test_encode!(127i16, b"i127e");
         test_encode!(127i32, b"i127e");
-        test_encode!(127i64, b"i127e");
+        test_encode!(127isize, b"i127e");
     }
 
     #[test]
@@ -813,7 +813,7 @@ mod test {
         test_encode!(-127i8, b"i-127e");
         test_encode!(-127i16, b"i-127e");
         test_encode!(-127i32, b"i-127e");
-        test_encode!(-127i64, b"i-127e");
+        test_encode!(-127isize, b"i-127e");
     }
 
     #[test]
