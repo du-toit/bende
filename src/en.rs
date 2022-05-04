@@ -843,6 +843,12 @@ mod test {
     }
 
     #[test]
+    fn encode_bool() {
+        test_encode!(false, b"i0e");
+        test_encode!(true, b"i1e");
+    }
+
+    #[test]
     fn serialize_some() {
         #[derive(Debug, PartialEq, Serialize)]
         struct Person {
