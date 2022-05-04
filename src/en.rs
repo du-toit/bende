@@ -863,11 +863,7 @@ mod test {
             name: Option<String>,
             age: u8,
         }
-
-        let jerry = Person { name: None, age: 50 };
-
-        let mut en = Encoder::new(vec![]);
-        jerry.serialize(&mut en).unwrap();
+        test_encode!(Person { name: None, age: 50 }, b"");
     }
 
     #[test]
