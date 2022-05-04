@@ -741,6 +741,11 @@ mod test {
     }
 
     #[test]
+    fn decode_char_ok() {
+        test_decode!(b"1:a", Ok('a'));
+    }
+
+    #[test]
     fn decode_len_ok() {
         let mut de = Decoder::new(b"13:x");
         assert_eq!(de.decode_len(), Ok(13));
