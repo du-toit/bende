@@ -808,9 +808,7 @@ mod test {
     fn deserialize_unit_struct_ok() {
         #[derive(Debug, PartialEq, Deserialize)]
         struct Unit;
-
-        let mut de = Decoder::new(b"4:Unit");
-        assert_eq!(Unit::deserialize(&mut de), Ok(Unit));
+        test_decode!(b"4:Unit", Ok(Unit));
     }
 
     #[test]
