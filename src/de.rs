@@ -706,8 +706,7 @@ mod test {
 
     #[test]
     fn decode_int_invalid_digits() {
-        let mut de = Decoder::new(b"i199xe");
-        assert_eq!(de.decode_int(), Err(Error::Malformed))
+        test_decode!(i32, b"i199xe", Err(Error::Malformed));
     }
 
     #[test]
