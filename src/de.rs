@@ -752,8 +752,7 @@ mod test {
 
     #[test]
     fn decode_bytes_empty() {
-        let mut de = Decoder::new(b"0:");
-        assert_eq!(de.decode_bytes(), Ok(b"".as_slice()));
+        test_decode!(b"0:", Ok(Bytes::new(b"")));
     }
 
     #[test]
