@@ -963,12 +963,6 @@ mod test {
             b: i32,
             a: i32,
         }
-
-        let foo = Foo { c: 3, b: 2, a: 1 };
-
-        let mut en = Encoder::new(vec![]);
-        foo.serialize(&mut en).unwrap();
-
-        assert_eq!(en.buf, b"d1:ai1e1:bi2e1:ci3ee")
+        test_encode!(Foo { c: 3, b: 2, a: 1 }, b"d1:ai1e1:bi2e1:ci3ee");
     }
 }
