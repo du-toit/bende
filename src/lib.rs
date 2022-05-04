@@ -197,9 +197,7 @@ mod test {
     fn encode_and_decode_unit_struct() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
         struct Foo;
-
-        let bytes = encode(&Foo).unwrap();
-        assert_eq!(decode::<Foo>(&bytes).unwrap(), Foo);
+        test_bende!(Foo, Foo);
     }
 
     #[test]
