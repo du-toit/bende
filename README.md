@@ -22,7 +22,7 @@ Add the library as a dependency to [Cargo.toml](https://doc.rust-lang.org/cargo/
 
 ```toml
 [dependencies]
-bende = "0.5.2"
+bende = "0.5.3"
 serde = { version = "1", features = ["derive"] }
 ```
 
@@ -54,10 +54,9 @@ The types that are currently **not supported** are:
 
 * `f32`
 * `f64`
-* `char`
 * `enum`
 
-Floats will never be supported, but `char` and `enum` support will probably be added in the future.
+Floats will never be supported, but `enum` support will probably be added in the future.
 
 ## Contributing
 
