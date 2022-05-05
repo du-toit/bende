@@ -992,6 +992,18 @@ mod test {
     }
 
     #[test]
+    fn deserialize_struct_variant() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        enum Enum {
+            Foo { a: char, b: char },
+        }
+        test_decode!(
+            b"d3:Food1:a1:z1:b1:yee",
+            Ok(Enum::Foo { a: 'z', b: 'y' })
+        );
+    }
+
+    #[test]
     fn deserialize_simple_struct() {
         #[derive(Debug, PartialEq, Deserialize)]
         struct Person {
