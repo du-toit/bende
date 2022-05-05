@@ -5,6 +5,7 @@ use std::str::Utf8Error;
 use std::string::FromUtf8Error;
 
 use serde::de::EnumAccess;
+use serde::de::IntoDeserializer;
 use serde::de::MapAccess;
 use serde::de::SeqAccess;
 use serde::de::VariantAccess;
@@ -550,12 +551,28 @@ impl<'a, 'de> Deserializer<'de> for &'a mut Decoder<'de> {
         self,
         _: &'static str,
         _: &'static [&'static str],
-        _: V,
+        visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        Err(Error::Unsupported("enum"))
+        if self.peek() == Some(DICT_START) {
+            // Skip over the outer dictionary's start denotation.
+            self.advance(1);
+
+            let val = visitor.visit_enum(&mut *self)?;
+
+            // Skip over the outer dictionary's end denotation.
+            self.advance_if(
+                |next| next == TYPE_END,
+                "the end of a dictionary",
+            )?;
+            Ok(val)
+        } else {
+            visitor.visit_enum(
+                str::from_utf8(self.decode_bytes()?)?.into_deserializer(),
+            )
+        }
     }
 
     fn deserialize_identifier<V>(
