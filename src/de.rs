@@ -6,6 +6,7 @@ use std::string::FromUtf8Error;
 
 use serde::de::MapAccess;
 use serde::de::SeqAccess;
+use serde::de::VariantAccess;
 use serde::Deserializer;
 
 use super::DICT_START;
@@ -574,6 +575,43 @@ impl<'a, 'de> Deserializer<'de> for &'a mut Decoder<'de> {
         V: serde::de::Visitor<'de>,
     {
         self.deserialize_any(visitor)
+    }
+}
+
+impl<'a, 'de> VariantAccess<'de> for &'a mut Decoder<'de> {
+    type Error = Error;
+
+    fn unit_variant(self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Self::Error>
+    where
+        T: serde::de::DeserializeSeed<'de>,
+    {
+        seed.deserialize(self)
+    }
+
+    fn tuple_variant<V>(
+        self,
+        _: usize,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: serde::de::Visitor<'de>,
+    {
+        self.deserialize_seq(visitor)
+    }
+
+    fn struct_variant<V>(
+        self,
+        _: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: serde::de::Visitor<'de>,
+    {
+        self.deserialize_map(visitor)
     }
 }
 
