@@ -258,9 +258,9 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
         self,
         _: &'static str,
         _: u32,
-        _: &'static str,
+        variant: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
-        Ok(())
+        self.serialize_str(variant)
     }
 
     fn serialize_newtype_struct<T: ?Sized>(
