@@ -22,7 +22,7 @@ Add the library as a dependency to [Cargo.toml](https://doc.rust-lang.org/cargo/
 
 ```toml
 [dependencies]
-bende = "0.5.3"
+bende = "0.5.4"
 serde = { version = "1", features = ["derive"] }
 ```
 
@@ -50,13 +50,10 @@ assert_eq!(bende::decode::<Person>(&bytes).unwrap(), jerry);
 
 ## Unsupported Types
 
-The types that are currently **not supported** are:
+The types that are **not supported** are:
 
 * `f32`
 * `f64`
-* `enum`
-
-Floats will never be supported, but `enum` support will probably be added in the future.
 
 ## Contributing
 

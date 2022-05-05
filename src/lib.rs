@@ -140,6 +140,30 @@ mod test {
     }
 
     #[test]
+    fn encode_and_decode_nested_enum() {
+        #[derive(Debug, PartialEq, Serialize, Deserialize)]
+        struct Player {
+            name: String,
+            class: Class,
+        }
+
+        #[derive(Debug, PartialEq, Serialize, Deserialize)]
+        enum Class {
+            Wizard,
+            Fighter,
+        }
+
+        test_bende!(
+            Player,
+            Player { name: "Gandalf".into(), class: Class::Wizard }
+        );
+        test_bende!(
+            Player,
+            Player { name: "Gimly".into(), class: Class::Fighter }
+        );
+    }
+
+    #[test]
     fn encode_and_decode_nested_struct() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
         struct Armory {

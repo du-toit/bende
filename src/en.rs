@@ -258,9 +258,9 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
         self,
         _: &'static str,
         _: u32,
-        _: &'static str,
+        variant: &'static str,
     ) -> Result<Self::Ok, Self::Error> {
-        Ok(())
+        self.serialize_str(variant)
     }
 
     fn serialize_newtype_struct<T: ?Sized>(
@@ -278,13 +278,18 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
         self,
         _: &'static str,
         _: u32,
-        _: &'static str,
-        _: &T,
+        variant: &'static str,
+        value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
         T: serde::Serialize,
     {
-        Ok(())
+        self.tag(DICT_START)?;
+
+        self.serialize_str(variant)?;
+        value.serialize(&mut *self)?;
+
+        self.tag(TYPE_END)
     }
 
     fn serialize_seq(
@@ -316,9 +321,11 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
         self,
         _: &'static str,
         _: u32,
-        _: &'static str,
+        variant: &'static str,
         _: usize,
     ) -> Result<Self::SerializeTupleVariant, Self::Error> {
+        self.tag(DICT_START)?;
+        self.serialize_str(variant)?;
         self.tag(LIST_START)?;
         Ok(SeqEncoder::new(self))
     }
@@ -344,9 +351,11 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
         self,
         _: &'static str,
         _: u32,
-        _: &'static str,
+        variant: &'static str,
         _: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
+        self.tag(DICT_START)?;
+        self.serialize_str(variant)?;
         self.tag(DICT_START)?;
         Ok(MapEncoder::new(self))
     }
@@ -444,7 +453,13 @@ impl<'a, W: Write> SerializeTupleVariant for SeqEncoder<'a, W> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.en.tag(TYPE_END)
+        // A tuple variant is serialized as a dictionary with the variant's name mapping to a list of values.
+        // We need to write the 'TYPE_END' **twice**, otherwise the outer dictionary won't be closed.
+        //
+        // If we only write it **once**, then, for example:
+        //
+        // 'Enum::Foo(1, 2, 3)' will be encoded as 'd3:Fooli1ei2ei3ee' - so we need an additional end denotation.
+        self.en.write(&[TYPE_END, TYPE_END])
     }
 }
 
@@ -569,7 +584,8 @@ impl<'a, W: Write> SerializeStructVariant for MapEncoder<'a, W> {
             self.encoder.serialize_bytes(&key)?;
             self.encoder.write(&val)?;
         }
-        self.encoder.tag(TYPE_END)
+        // Note that we need to write the 'TYPE_END' **twice**, otherwise the outer dictionary won't have a closing delimiter.
+        self.encoder.write(&[TYPE_END, TYPE_END])
     }
 }
 
@@ -937,6 +953,54 @@ mod test {
         map.insert("baz", "faz");
 
         test_encode!(map, b"d3:baz3:faz3:foo3:bare");
+    }
+
+    #[test]
+    fn serialize_unit_variant() {
+        #[derive(Debug, PartialEq, Serialize)]
+        enum Enum {
+            Foo,
+            Bar,
+            Baz,
+        }
+        test_encode!(Enum::Foo, b"3:Foo");
+        test_encode!(Enum::Bar, b"3:Bar");
+        test_encode!(Enum::Baz, b"3:Baz");
+    }
+
+    #[test]
+    fn serialize_newtype_variant() {
+        #[derive(Debug, PartialEq, Serialize)]
+        enum Enum {
+            Foo(i32),
+            Bar(String),
+            Baz(bool),
+        }
+        test_encode!(Enum::Foo(50), b"d3:Fooi50ee");
+        test_encode!(Enum::Bar("foo".into()), b"d3:Bar3:fooe");
+        test_encode!(Enum::Baz(false), b"d3:Bazi0ee");
+    }
+
+    #[test]
+    fn serialize_tuple_variant() {
+        #[derive(Debug, PartialEq, Serialize)]
+        enum Enum {
+            Foo(i32, i32),
+            Bar(char, bool),
+            Baz(String, u8),
+        }
+        test_encode!(Enum::Foo(50, 90), b"d3:Fooli50ei90eee");
+        test_encode!(Enum::Bar('a', true), b"d3:Barl1:ai1eee");
+        test_encode!(Enum::Baz("foo".into(), 255), b"d3:Bazl3:fooi255eee");
+    }
+
+    #[test]
+    fn serialize_struct_variant() {
+        #[derive(Debug, PartialEq, Serialize)]
+        enum Enum {
+            Foo { a: char, b: char },
+        }
+        test_encode!(Enum::Foo { a: 'z', b: 'y' }, b"d3:Food1:a1:z1:b1:yee");
     }
 
     #[test]

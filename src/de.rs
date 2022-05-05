@@ -4,8 +4,11 @@ use std::str;
 use std::str::Utf8Error;
 use std::string::FromUtf8Error;
 
+use serde::de::EnumAccess;
+use serde::de::IntoDeserializer;
 use serde::de::MapAccess;
 use serde::de::SeqAccess;
+use serde::de::VariantAccess;
 use serde::Deserializer;
 
 use super::DICT_START;
@@ -548,12 +551,28 @@ impl<'a, 'de> Deserializer<'de> for &'a mut Decoder<'de> {
         self,
         _: &'static str,
         _: &'static [&'static str],
-        _: V,
+        visitor: V,
     ) -> Result<V::Value, Self::Error>
     where
         V: serde::de::Visitor<'de>,
     {
-        Err(Error::Unsupported("enum"))
+        if self.peek() == Some(DICT_START) {
+            // Skip over the outer dictionary's start denotation.
+            self.advance(1);
+
+            let val = visitor.visit_enum(&mut *self)?;
+
+            // Skip over the outer dictionary's end denotation.
+            self.advance_if(
+                |next| next == TYPE_END,
+                "the end of a dictionary",
+            )?;
+            Ok(val)
+        } else {
+            visitor.visit_enum(
+                str::from_utf8(self.decode_bytes()?)?.into_deserializer(),
+            )
+        }
     }
 
     fn deserialize_identifier<V>(
@@ -574,6 +593,59 @@ impl<'a, 'de> Deserializer<'de> for &'a mut Decoder<'de> {
         V: serde::de::Visitor<'de>,
     {
         self.deserialize_any(visitor)
+    }
+}
+
+impl<'a, 'de> VariantAccess<'de> for &'a mut Decoder<'de> {
+    type Error = Error;
+
+    fn unit_variant(self) -> Result<(), Self::Error> {
+        Ok(())
+    }
+
+    fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value, Self::Error>
+    where
+        T: serde::de::DeserializeSeed<'de>,
+    {
+        seed.deserialize(self)
+    }
+
+    fn tuple_variant<V>(
+        self,
+        _: usize,
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: serde::de::Visitor<'de>,
+    {
+        self.deserialize_seq(visitor)
+    }
+
+    fn struct_variant<V>(
+        self,
+        _: &'static [&'static str],
+        visitor: V,
+    ) -> Result<V::Value, Self::Error>
+    where
+        V: serde::de::Visitor<'de>,
+    {
+        self.deserialize_map(visitor)
+    }
+}
+
+impl<'a, 'de> EnumAccess<'de> for &'a mut Decoder<'de> {
+    type Error = Error;
+
+    type Variant = Self;
+
+    fn variant_seed<V>(
+        self,
+        seed: V,
+    ) -> Result<(V::Value, Self::Variant), Self::Error>
+    where
+        V: serde::de::DeserializeSeed<'de>,
+    {
+        Ok((seed.deserialize(&mut *self)?, self))
     }
 }
 
@@ -878,6 +950,57 @@ mod test {
         type BadMap = HashMap<i32, String>;
 
         test_decode!(BadMap, b"di1995e3:fooe", Err(Error::Malformed));
+    }
+
+    #[test]
+    fn deserialize_unit_variant() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        enum Enum {
+            Foo,
+            Bar,
+            Baz,
+        }
+        test_decode!(b"3:Foo", Ok(Enum::Foo));
+        test_decode!(b"3:Bar", Ok(Enum::Bar));
+        test_decode!(b"3:Baz", Ok(Enum::Baz));
+    }
+
+    #[test]
+    fn deserialize_newtype_variant() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        enum Enum {
+            Foo(i32),
+            Bar(String),
+            Baz(bool),
+        }
+        test_decode!(b"d3:Fooi50ee", Ok(Enum::Foo(50)));
+        test_decode!(b"d3:Bar5:helloe", Ok(Enum::Bar("hello".to_string())));
+        test_decode!(b"d3:Bazi1ee", Ok(Enum::Baz(true)));
+    }
+
+    #[test]
+    fn deserialize_tuple_variant() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        enum Enum {
+            Foo(i32, i32),
+            Bar(char, bool),
+            Baz(String, u8),
+        }
+        test_decode!(b"d3:Fooli50ei90eee", Ok(Enum::Foo(50, 90)));
+        test_decode!(b"d3:Barl1:ai1eee", Ok(Enum::Bar('a', true)));
+        test_decode!(b"d3:Bazl3:fooi255eee", Ok(Enum::Baz("foo".into(), 255)));
+    }
+
+    #[test]
+    fn deserialize_struct_variant() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        enum Enum {
+            Foo { a: char, b: char },
+        }
+        test_decode!(
+            b"d3:Food1:a1:z1:b1:yee",
+            Ok(Enum::Foo { a: 'z', b: 'y' })
+        );
     }
 
     #[test]
