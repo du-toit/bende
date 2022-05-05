@@ -940,6 +940,19 @@ mod test {
     }
 
     #[test]
+    fn serialize_unit_variant() {
+        #[derive(Debug, PartialEq, Serialize)]
+        enum Enum {
+            Foo,
+            Bar,
+            Baz,
+        }
+        test_encode!(Enum::Foo, b"3:Foo");
+        test_encode!(Enum::Bar, b"3:Bar");
+        test_encode!(Enum::Baz, b"3:Baz");
+    }
+
+    #[test]
     fn serialize_simple_struct() {
         #[derive(Debug, PartialEq, Serialize)]
         struct Person {
