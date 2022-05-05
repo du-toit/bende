@@ -278,13 +278,18 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
         self,
         _: &'static str,
         _: u32,
-        _: &'static str,
-        _: &T,
+        variant: &'static str,
+        value: &T,
     ) -> Result<Self::Ok, Self::Error>
     where
         T: serde::Serialize,
     {
-        Ok(())
+        self.tag(DICT_START)?;
+
+        self.serialize_str(variant)?;
+        value.serialize(&mut *self)?;
+
+        self.tag(TYPE_END)
     }
 
     fn serialize_seq(
