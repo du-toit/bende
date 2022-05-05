@@ -351,9 +351,11 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
         self,
         _: &'static str,
         _: u32,
-        _: &'static str,
+        variant: &'static str,
         _: usize,
     ) -> Result<Self::SerializeStructVariant, Self::Error> {
+        self.tag(DICT_START)?;
+        self.serialize_str(variant)?;
         self.tag(DICT_START)?;
         Ok(MapEncoder::new(self))
     }
