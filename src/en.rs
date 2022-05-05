@@ -582,7 +582,8 @@ impl<'a, W: Write> SerializeStructVariant for MapEncoder<'a, W> {
             self.encoder.serialize_bytes(&key)?;
             self.encoder.write(&val)?;
         }
-        self.encoder.tag(TYPE_END)
+        // Note that we need to write the 'TYPE_END' **twice**, otherwise the outer dictionary won't have a closing delimiter.
+        self.encoder.write(&[TYPE_END, TYPE_END])
     }
 }
 
