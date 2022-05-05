@@ -4,6 +4,7 @@ use std::str;
 use std::str::Utf8Error;
 use std::string::FromUtf8Error;
 
+use serde::de::EnumAccess;
 use serde::de::MapAccess;
 use serde::de::SeqAccess;
 use serde::de::VariantAccess;
@@ -612,6 +613,22 @@ impl<'a, 'de> VariantAccess<'de> for &'a mut Decoder<'de> {
         V: serde::de::Visitor<'de>,
     {
         self.deserialize_map(visitor)
+    }
+}
+
+impl<'a, 'de> EnumAccess<'de> for &'a mut Decoder<'de> {
+    type Error = Error;
+
+    type Variant = Self;
+
+    fn variant_seed<V>(
+        self,
+        seed: V,
+    ) -> Result<(V::Value, Self::Variant), Self::Error>
+    where
+        V: serde::de::DeserializeSeed<'de>,
+    {
+        Ok((seed.deserialize(&mut *self)?, self))
     }
 }
 
