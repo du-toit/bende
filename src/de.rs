@@ -966,6 +966,19 @@ mod test {
     }
 
     #[test]
+    fn deserialize_newtype_variant() {
+        #[derive(Debug, PartialEq, Deserialize)]
+        enum Enum {
+            Foo(i32),
+            Bar(String),
+            Baz(bool),
+        }
+        test_decode!(b"d3:Fooi50ee", Ok(Enum::Foo(50)));
+        test_decode!(b"d3:Bar5:helloe", Ok(Enum::Bar("hello".to_string())));
+        test_decode!(b"d3:Bazi1ee", Ok(Enum::Baz(true)));
+    }
+
+    #[test]
     fn deserialize_simple_struct() {
         #[derive(Debug, PartialEq, Deserialize)]
         struct Person {
