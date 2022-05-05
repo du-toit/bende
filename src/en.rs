@@ -449,7 +449,13 @@ impl<'a, W: Write> SerializeTupleVariant for SeqEncoder<'a, W> {
     }
 
     fn end(self) -> Result<Self::Ok, Self::Error> {
-        self.en.tag(TYPE_END)
+        // A tuple variant is serialized as a dictionary with the variant's name mapping to a list of values.
+        // We need to write the 'TYPE_END' **twice**, otherwise the outer dictionary won't be closed.
+        //
+        // If we only write it **once**, then, for example:
+        //
+        // 'Enum::Foo(1, 2, 3)' will be encoded as 'd3:Fooli1ei2ei3ee' - so we need an additional end denotation.
+        self.en.write(&[TYPE_END, TYPE_END])
     }
 }
 
