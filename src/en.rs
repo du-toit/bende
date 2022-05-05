@@ -995,6 +995,15 @@ mod test {
     }
 
     #[test]
+    fn serialize_struct_variant() {
+        #[derive(Debug, PartialEq, Serialize)]
+        enum Enum {
+            Foo { a: char, b: char },
+        }
+        test_encode!(Enum::Foo { a: 'z', b: 'y' }, b"d3:Food1:a1:z1:b1:yee");
+    }
+
+    #[test]
     fn serialize_simple_struct() {
         #[derive(Debug, PartialEq, Serialize)]
         struct Person {
