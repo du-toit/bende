@@ -979,6 +979,19 @@ mod test {
     }
 
     #[test]
+    fn serialize_tuple_variant() {
+        #[derive(Debug, PartialEq, Serialize)]
+        enum Enum {
+            Foo(i32, i32),
+            Bar(char, bool),
+            Baz(String, u8),
+        }
+        test_encode!(Enum::Foo(50, 90), b"d3:Fooli50ei90eee");
+        test_encode!(Enum::Bar('a', true), b"d3:Barl1:ai1eee");
+        test_encode!(Enum::Baz("foo".into(), 255), b"d3:Bazl3:fooi255eee");
+    }
+
+    #[test]
     fn serialize_simple_struct() {
         #[derive(Debug, PartialEq, Serialize)]
         struct Person {
