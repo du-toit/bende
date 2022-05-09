@@ -122,7 +122,7 @@ mod test {
     }
 
     #[test]
-    fn encode_and_decode_simple() {
+    fn encode_and_decode_simple_struct() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
         struct Person {
             name: String,
