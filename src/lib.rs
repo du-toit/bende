@@ -122,6 +122,38 @@ mod test {
     }
 
     #[test]
+    fn encode_and_decode_unit_struct() {
+        #[derive(Debug, PartialEq, Serialize, Deserialize)]
+        struct Foo;
+        test_bende!(Foo, Foo);
+    }
+
+    #[test]
+    fn encode_and_decode_newtype_struct() {
+        #[derive(Debug, PartialEq, Serialize, Deserialize)]
+        struct Foo(i32);
+        test_bende!(Foo, Foo(1995));
+    }
+
+    #[test]
+    fn encode_and_decode_option() {
+        #[derive(Debug, PartialEq, Serialize, Deserialize)]
+        struct Person {
+            name: Option<String>,
+            age: Option<u8>,
+            is_employed: Option<bool>,
+        }
+        test_bende!(
+            Person,
+            Person {
+                name: Some("Jerry Smith".to_string()),
+                age: Some(50),
+                is_employed: Some(false),
+            }
+        );
+    }
+
+    #[test]
     fn encode_and_decode_simple_struct() {
         #[derive(Debug, PartialEq, Serialize, Deserialize)]
         struct Person {
@@ -197,37 +229,5 @@ mod test {
                 ],
             }
         );
-    }
-
-    #[test]
-    fn encode_and_decode_option() {
-        #[derive(Debug, PartialEq, Serialize, Deserialize)]
-        struct Person {
-            name: Option<String>,
-            age: Option<u8>,
-            is_employed: Option<bool>,
-        }
-        test_bende!(
-            Person,
-            Person {
-                name: Some("Jerry Smith".to_string()),
-                age: Some(50),
-                is_employed: Some(false),
-            }
-        );
-    }
-
-    #[test]
-    fn encode_and_decode_unit_struct() {
-        #[derive(Debug, PartialEq, Serialize, Deserialize)]
-        struct Foo;
-        test_bende!(Foo, Foo);
-    }
-
-    #[test]
-    fn encode_and_decode_newtype_struct() {
-        #[derive(Debug, PartialEq, Serialize, Deserialize)]
-        struct Foo(i32);
-        test_bende!(Foo, Foo(1995));
     }
 }
