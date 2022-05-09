@@ -856,13 +856,18 @@ mod test {
     }
 
     #[test]
+    fn decode_bytes_empty() {
+        test_decode!(b"0:", Ok(Bytes::new(b"")));
+    }
+
+    #[test]
     fn decode_bytes_err() {
         test_decode!(ByteBuf, b"4:foo", Err(Error::EOF));
     }
 
     #[test]
-    fn decode_bytes_empty() {
-        test_decode!(b"0:", Ok(Bytes::new(b"")));
+    fn decode_str_ok() {
+        test_decode!(b"3:foo", Ok("foo"));
     }
 
     #[test]
