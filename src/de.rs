@@ -866,6 +866,11 @@ mod test {
     }
 
     #[test]
+    fn decode_str_ok() {
+        test_decode!(b"3:foo", Ok("foo"));
+    }
+
+    #[test]
     fn decode_bool_ok() {
         test_decode!(b"i0e", Ok(false));
         test_decode!(b"i1e", Ok(true));
