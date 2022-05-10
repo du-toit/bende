@@ -362,8 +362,6 @@ impl<'a, W: Write> Serializer for &'a mut Encoder<W> {
 }
 
 /// An encoder used to encode the values in a sequence.
-///
-/// **Note** that this type cannot be constructed from outside this crate, and is only public because of the way the library's serialization is implemented.
 #[doc(hidden)]
 #[derive(Debug)]
 pub struct SeqEncoder<'a, W> {
